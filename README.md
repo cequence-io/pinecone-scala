@@ -4,9 +4,7 @@
 This is a no-nonsense async Scala client for Pinecone API supporting all the available vector and index/collection operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
 * **Vector Operations**: [describeIndexStats](https://docs.pinecone.io/reference/describe_index_stats_post), [query](https://docs.pinecone.io/reference/query), [delete](https://docs.pinecone.io/reference/delete_post), [fetch](https://docs.pinecone.io/reference/fetch), [update](https://docs.pinecone.io/reference/update), and [upsert](https://docs.pinecone.io/reference/upsert)
-
 * **Collection Operations**: [listCollections](https://docs.pinecone.io/reference/list_collections), [createCollection](https://docs.pinecone.io/reference/create_collection), [describeCollection](https://docs.pinecone.io/reference/describe_collection), and [delete_collection](https://docs.pinecone.io/reference/delete_collection)
-
 * **Index Operations**: [listIndexes](https://docs.pinecone.io/reference/list_indexes), [creatIndex](https://docs.pinecone.io/reference/create_index), [describeIndex](https://docs.pinecone.io/reference/describe_index), [deleteIndex](https://docs.pinecone.io/reference/delete_index), and [configureIndex](https://docs.pinecone.io/reference/configure_index)
 
 Note that in order to be consistent with the Pinecone API naming, the service function names match exactly the API endpoint titles/descriptions with camelcase.
@@ -41,7 +39,7 @@ or to *pom.xml* (if you use maven)
 
 ## Usage 👨‍🎓
 
-**I. Obtaining `PineconeVectorService` and `PineconeIndexService` **
+**I. Obtaining `PineconeVectorService` and `PineconeIndexService`**
 
 First you need to provide an implicit execution context as well as akka materializer, e.g., as
 
