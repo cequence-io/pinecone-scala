@@ -12,7 +12,7 @@ import scala.concurrent.Future
  *
  * The following services are supported:
  *
- *  - TODO
+ * - describeIndexStats, query, delete, fetch, update, and upsert
  *
  * @since Apr 2023
  */

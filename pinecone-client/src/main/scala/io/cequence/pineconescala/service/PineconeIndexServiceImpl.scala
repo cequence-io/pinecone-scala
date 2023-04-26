@@ -12,7 +12,6 @@ import io.cequence.pineconescala.ConfigImplicits._
 import io.cequence.pineconescala.domain.{PVector, PodType}
 import io.cequence.pineconescala.service.ws.{Timeouts, WSRequestHelper}
 
-import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -49,11 +48,36 @@ private class PineconeIndexServiceImpl(
   override def createCollection(
     name: String,
     source: String
-  ): Future[CreateResponse] = ???
+  ): Future[CreateResponse] =
+    execPOSTWithStatus(
+      Command.collections,
+      bodyParams = jsonBodyParams(
+        Tag.name -> Some(name),
+        Tag.source -> Some(source)
+      ),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
+
+      statusCode match {
+        case 201 => CreateResponse.Created
+        case 400 => CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid collection name.
+        case 409 => CreateResponse.AlreadyExists
+        case _ => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      }
+    }
 
   override def describeCollection(
     collectionName: String
-  ): Future[Option[CollectionInfo]] = ???
+  ): Future[Option[CollectionInfo]] =
+    execGETWithStatus(
+      Command.collections,
+      endPointParam = Some(collectionName)
+    ).map { response =>
+      handleNotFoundAndError(response).map(
+        _.asSafe[CollectionInfo]
+      )
+    }
 
   override def deleteCollection(
     collectionName: String
@@ -62,18 +86,13 @@ private class PineconeIndexServiceImpl(
       Command.collections,
       endPointParam = Some(collectionName),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map {
-      _ match {
-        case Right((errorCode, message)) =>
-          errorCode match {
-            case 202 => DeleteResponse.Deleted
-            case 404 => DeleteResponse.NotFound
-            case _ => throw new PineconeScalaClientException(s"Code ${errorCode} : ${message}")
-          }
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
 
-        // should never happen
-        case Left(_) =>
-          throw new IllegalArgumentException("Should never happen.")
+      statusCode match {
+        case 202 => DeleteResponse.Deleted
+        case 404 => DeleteResponse.NotFound
+        case _ => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
       }
     }
 
@@ -100,19 +119,14 @@ private class PineconeIndexServiceImpl(
         Tag.source_collection -> settings.source_collection
       ),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map {
-      _ match {
-        case Right((errorCode, message)) =>
-          errorCode match {
-            case 201 => CreateResponse.Created
-            case 400 => CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid index name.
-            case 409 => CreateResponse.AlreadyExists
-            case _ => throw new PineconeScalaClientException(s"Code ${errorCode} : ${message}")
-          }
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
 
-        // should never happen
-        case Left(_) =>
-          throw new IllegalArgumentException("Should never happen.")
+      statusCode match {
+        case 201 => CreateResponse.Created
+        case 400 => CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid index name.
+        case 409 => CreateResponse.AlreadyExists
+        case _ => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
       }
     }
 
@@ -135,26 +149,38 @@ private class PineconeIndexServiceImpl(
       Command.databases,
       endPointParam = Some(indexName),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map {
-      _ match {
-        case Right((errorCode, message)) =>
-          errorCode match {
-            case 202 => DeleteResponse.Deleted
-            case 404 => DeleteResponse.NotFound
-            case _ => throw new PineconeScalaClientException(s"Code ${errorCode} : ${message}")
-          }
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
 
-        // should never happen
-        case Left(_) =>
-          throw new IllegalArgumentException("Should never happen.")
+      statusCode match {
+        case 202 => DeleteResponse.Deleted
+        case 404 => DeleteResponse.NotFound
+        case _ => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
       }
     }
 
   override def configureIndex(
-    indexName: Seq[PVector],
+    indexName: String,
     replicas: Option[Int],
     pod_type: Option[PodType.Value]
-  ): Future[ConfigureIndexResponse] = ???
+  ): Future[ConfigureIndexResponse] =
+    execPATCHWithStatus(
+      Command.databases,
+      endPointParam = Some(indexName),
+      bodyParams = jsonBodyParams(
+        Tag.replicas -> replicas,
+        Tag.pod_type -> pod_type.map(_.toString)
+      )
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
+
+      statusCode match {
+        case 202 => ConfigureIndexResponse.Updated
+        case 400 => ConfigureIndexResponse.BadRequestNotEnoughQuota
+        case 404 => ConfigureIndexResponse.NotFound
+        case _ => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      }
+    }
 
   // aux
 
@@ -176,6 +202,17 @@ private class PineconeIndexServiceImpl(
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }
+
+  private def statusCodeAndMessage(
+    response: RichJsResponse
+  ) =
+    response match {
+      case Right(statusCodeAndMessage) => statusCodeAndMessage
+
+      // should never happen
+      case Left(json) =>
+        throw new IllegalArgumentException(s"Status code and message expected but got a json value '${json}'.")
+    }
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
