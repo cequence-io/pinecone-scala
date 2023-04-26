@@ -26,7 +26,6 @@ object Tag {
   case object vector extends Tag
   case object sparseVector extends Tag
   case object id extends Tag
-  case object queries extends Tag
   case object ids extends Tag
   case object deleteAll extends Tag
   case object sparseValues extends Tag
@@ -35,7 +34,6 @@ object Tag {
   case object vectors extends Tag
   case object name extends Tag
   case object source extends Tag
-  case object collectionName extends Tag
   case object dimension extends Tag
   case object metric extends Tag
   case object pods extends Tag
@@ -43,7 +41,5 @@ object Tag {
   case object pod_type extends Tag
   case object metadata_config extends Tag
   case object source_collection extends Tag
-  case object index_type extends Tag
-  case object index_config extends Tag
   case object indexName extends Tag
 }
