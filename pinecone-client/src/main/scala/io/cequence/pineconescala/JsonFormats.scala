@@ -1,7 +1,7 @@
 package  io.cequence.pineconescala
 
 import io.cequence.pineconescala.JsonUtil.EnumFormat
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector}
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings._
 import play.api.libs.json.{Format, Json, _}
@@ -22,5 +22,7 @@ object JsonFormats {
   implicit val podTypeFormat: Format[PodType.Value] = EnumFormat(PodType)
   implicit val metricFormat: Format[Metric.Value] = EnumFormat(Metric)
   implicit val indexConfigFormat: Format[IndexConfig] = Json.format[IndexConfig]
+  implicit val indexDatabaseInfoFormat: Format[IndexDatabaseInfo] = Json.format[IndexDatabaseInfo]
+  implicit val indexStatusInfoFormat: Format[IndexStatusInfo] = Json.format[IndexStatusInfo]
   implicit val indexInfoFormat: Format[IndexInfo] = Json.format[IndexInfo]
 }

@@ -3,16 +3,14 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import play.api.libs.ws.StandaloneWSRequest
-import play.api.libs.json.Json
 import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.settings.{PodType, QuerySettings, _}
+import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.ConfigImplicits._
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.domain.{PVector, PodType}
 import io.cequence.pineconescala.service.ws.{Timeouts, WSRequestHelper}
-import io.cequence.pineconescala.domain.response.IndexStats
 
 import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,11 +29,9 @@ private class PineconeIndexServiceImpl(
   implicit val ec: ExecutionContext, val materializer: Materializer
 ) extends PineconeIndexService with WSRequestHelper {
 
-  override protected type PEP = Command.type#Value
-  override protected type PT = Tag.type#Value
+  override protected type PEP = Command
+  override protected type PT = Tag
   override protected val coreUrl = s"https://controller.${environment}.pinecone.io/"
-
-//  private val logger = LoggerFactory.getLogger("PineconeIndexService")
 
   override protected def timeouts: Timeouts =
     explTimeouts.getOrElse(
@@ -61,7 +57,25 @@ private class PineconeIndexServiceImpl(
 
   override def deleteCollection(
     collectionName: String
-  ): Future[DeleteResponse] = ???
+  ): Future[DeleteResponse] =
+    execDELETEWithStatus(
+      Command.collections,
+      endPointParam = Some(collectionName),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map {
+      _ match {
+        case Right((errorCode, message)) =>
+          errorCode match {
+            case 202 => DeleteResponse.Deleted
+            case 404 => DeleteResponse.NotFound
+            case _ => throw new PineconeScalaClientException(s"Code ${errorCode} : ${message}")
+          }
+
+        // should never happen
+        case Left(_) =>
+          throw new IllegalArgumentException("Should never happen.")
+      }
+    }
 
   override def listIndexes: Future[Seq[String]] =
     execGET(Command.databases).map(
@@ -104,11 +118,37 @@ private class PineconeIndexServiceImpl(
 
   override def describeIndex(
     indexName: String
-  ): Future[Option[IndexInfo]] = ???
+  ): Future[Option[IndexInfo]] =
+    execGETWithStatus(
+      Command.databases,
+      endPointParam = Some(indexName)
+    ).map { response =>
+      handleNotFoundAndError(response).map(
+        _.asSafe[IndexInfo]
+      )
+    }
 
   override def deleteIndex(
     indexName: String
-  ): Future[DeleteResponse] = ???
+  ): Future[DeleteResponse] =
+    execDELETEWithStatus(
+      Command.databases,
+      endPointParam = Some(indexName),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map {
+      _ match {
+        case Right((errorCode, message)) =>
+          errorCode match {
+            case 202 => DeleteResponse.Deleted
+            case 404 => DeleteResponse.NotFound
+            case _ => throw new PineconeScalaClientException(s"Code ${errorCode} : ${message}")
+          }
+
+        // should never happen
+        case Left(_) =>
+          throw new IllegalArgumentException("Should never happen.")
+      }
+    }
 
   override def configureIndex(
     indexName: Seq[PVector],

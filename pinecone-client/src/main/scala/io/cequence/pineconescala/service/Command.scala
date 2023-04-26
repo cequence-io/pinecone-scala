@@ -1,43 +1,49 @@
 package  io.cequence.pineconescala.service
 
-object Command extends Enumeration {
-  val describe_index_stats = Value
-  val query = Value
-  val vectors_delete = Value("vectors/delete")
-  val vectors_fetch = Value("vectors/fetch")
-  val vectors_update = Value("vectors/update")
-  val vectors_upsert = Value("vectors/upsert")
-  val collections = Value
-  val databases = Value
+import io.cequence.pineconescala.domain.EnumValue
+
+sealed abstract class Command(value: String = "") extends EnumValue(value)
+
+object Command {
+  case object describe_index_stats extends Command
+  case object query extends Command
+  case object vectors_delete extends Command("vectors/delete")
+  case object vectors_fetch extends Command("vectors/fetch")
+  case object vectors_update extends Command("vectors/update")
+  case object vectors_upsert extends Command("vectors/upsert")
+  case object collections extends Command
+  case object databases extends Command
 }
 
-object Tag extends Enumeration {
-  val filter = Value
-  val namespace = Value
-  val topK = Value 
-  val includeValues = Value
-  val includeMetadata = Value 
-  val vector = Value 
-  val sparseVector = Value 
-  val id = Value
-  val queries = Value
-  val ids = Value
-  val deleteAll = Value
-  val sparseValues = Value
-  val setMetadata = Value
-  val values_ = Value("values") // values is a keyword in Scala Enum
-  val vectors = Value
-  val name = Value
-  val source = Value
-  val collectionName = Value
-  val dimension = Value
-  val metric = Value
-  val pods = Value
-  val replicas = Value
-  val pod_type = Value
-  val metadata_config = Value
-  val source_collection = Value
-  val index_type = Value
-  val index_config = Value
-  val indexName = Value
+sealed abstract class Tag(value: String = "") extends EnumValue(value)
+
+object Tag {
+  case object filter extends Tag
+  case object namespace extends Tag
+  case object topK extends Tag
+  case object includeValues extends Tag
+  case object includeMetadata extends Tag
+  case object vector extends Tag
+  case object sparseVector extends Tag
+  case object id extends Tag
+  case object queries extends Tag
+  case object ids extends Tag
+  case object deleteAll extends Tag
+  case object sparseValues extends Tag
+  case object setMetadata extends Tag
+  case object values extends Tag
+  case object vectors extends Tag
+  case object name extends Tag
+  case object source extends Tag
+  case object collectionName extends Tag
+  case object dimension extends Tag
+  case object metric extends Tag
+  case object pods extends Tag
+  case object replicas extends Tag
+  case object pod_type extends Tag
+  case object metadata_config extends Tag
+  case object source_collection extends Tag
+  case object index_type extends Tag
+  case object index_config extends Tag
+  case object indexName extends Tag
 }

@@ -1,8 +1,8 @@
 package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.{CreateIndexSettings, PodType, QuerySettings}
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.domain.settings.{CreateIndexSettings, QuerySettings}
+import io.cequence.pineconescala.domain.{PVector, PodType}
 
 import scala.concurrent.Future
 

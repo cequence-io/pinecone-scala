@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.domain.settings.QuerySettings
-import io.cequence.pineconescala.service.PineconeServiceFactory
+import io.cequence.pineconescala.service.PineconeVectorServiceFactory
 
 import scala.concurrent.ExecutionContext
 import scala.util.Random
@@ -15,14 +15,14 @@ object PineconeVectorExample extends App {
   implicit val ec = ExecutionContext.global
   implicit val materializer = Materializer(ActorSystem())
 
-  private val service = PineconeServiceFactory(
-    indexName = "auto-gpt-a2294be"
-  )
-
   private val testIds = Seq("666", "667")
 
   {
     for {
+      service <- PineconeVectorServiceFactory(indexName = "auto-gpt-test").map(
+        _.getOrElse(throw new IllegalArgumentException(s"index 'auto-gpt-test' not found"))
+      )
+
       stats <- service.describeIndexStats
 
       upsertResponse <- service.upsert(

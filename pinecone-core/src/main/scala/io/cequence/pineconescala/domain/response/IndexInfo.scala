@@ -1,22 +1,34 @@
 package io.cequence.pineconescala.domain.response
 
-import io.cequence.pineconescala.domain.settings.{Metric, PodType}
+import io.cequence.pineconescala.domain.{Metric, PodType}
 
 case class IndexInfo(
+  database: IndexDatabaseInfo,
+  status: IndexStatusInfo
+//  index_config: IndexConfig,
+//  metadata_config: String,
+)
+
+case class IndexDatabaseInfo(
   name: String,
-  dimension: Int,
-  @Deprecated
-  index_type: String,
   metric: Metric.Value,
+  dimension: Int,
   pods: Int,
   replicas: Int,
   shards: Int,
-  pod_type: PodType.Value,
-  index_config: IndexConfig,
-  metadata_config: String,
-  status: IndexStatus.Value
+  pod_type: PodType.Value
 )
 
+case class IndexStatusInfo(
+  waiting: Seq[String],
+  crashed: Seq[String],
+  host: String,
+  port: Int,
+  state: IndexStatus.Value,
+  ready: Boolean
+)
+
+@Deprecated // TODO: remove?
 case class IndexConfig(
   k_bits: Int,
   hybrid: Int
