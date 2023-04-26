@@ -33,7 +33,7 @@ private class PineconeVectorServiceImpl(
   implicit val ec: ExecutionContext, val materializer: Materializer
 ) extends PineconeVectorService with WSRequestHelper {
 
-  override protected type PEP = Command
+  override protected type PEP = EndPoint
   override protected type PT = Tag
 
 //  override protected val coreUrl = s"https://${indexName}-${projectId}.svc.${environment}.pinecone.io/"
@@ -47,7 +47,7 @@ private class PineconeVectorServiceImpl(
     )
 
   override def describeIndexStats: Future[IndexStats] =
-    execGET(Command.describe_index_stats).map(
+    execGET(EndPoint.describe_index_stats).map(
       _.asSafe[IndexStats]
     )
 
@@ -57,7 +57,7 @@ private class PineconeVectorServiceImpl(
     settings: QuerySettings
   ): Future[QueryResponse] =
     execPOST(
-      Command.query,
+      EndPoint.query,
       bodyParams = jsonBodyParams(
         Tag.vector -> Some(vector),
         Tag.namespace -> Some(namespace),
@@ -77,7 +77,7 @@ private class PineconeVectorServiceImpl(
     settings: QuerySettings
   ): Future[QueryResponse] =
     execPOST(
-      Command.query,
+      EndPoint.query,
       bodyParams = jsonBodyParams(
         Tag.id -> Some(id),
         Tag.namespace -> Some(namespace),
@@ -96,7 +96,7 @@ private class PineconeVectorServiceImpl(
     namespace: String
   ): Future[Unit] =
     execPOST(
-      Command.vectors_delete,
+      EndPoint.vectors_delete,
       bodyParams = jsonBodyParams(
         Tag.ids -> Some(ids),
         Tag.namespace -> Some(namespace)
@@ -110,7 +110,7 @@ private class PineconeVectorServiceImpl(
     assert(filter.nonEmpty, "Filter must be defined.")
 
     execPOST(
-      Command.vectors_delete,
+      EndPoint.vectors_delete,
       bodyParams = jsonBodyParams(
         Tag.filter -> Some(filter),
         Tag.namespace -> Some(namespace)
@@ -122,7 +122,7 @@ private class PineconeVectorServiceImpl(
     namespace: String
   ): Future[Unit] =
     execPOST(
-      Command.vectors_delete,
+      EndPoint.vectors_delete,
       bodyParams = jsonBodyParams(
         Tag.deleteAll -> Some(true),
         Tag.namespace -> Some(namespace)
@@ -134,7 +134,7 @@ private class PineconeVectorServiceImpl(
     namespace: String
   ): Future[FetchResponse] =
     execGET(
-      Command.vectors_fetch,
+      EndPoint.vectors_fetch,
       params = Seq(
         Tag.namespace -> Some(namespace)
       ) ++ ids.map(Tag.ids -> Some(_))
@@ -150,7 +150,7 @@ private class PineconeVectorServiceImpl(
     setMetaData: Map[String, String]
   ): Future[Unit] =
     execPOST(
-      Command.vectors_update,
+      EndPoint.vectors_update,
       bodyParams = jsonBodyParams(
         Tag.id -> Some(id),
         Tag.namespace -> Some(namespace),
@@ -165,7 +165,7 @@ private class PineconeVectorServiceImpl(
     namespace: String
   ): Future[Int] =
     execPOST(
-      Command.vectors_upsert,
+      EndPoint.vectors_upsert,
       bodyParams = jsonBodyParams(
         Tag.vectors -> Some(vectors.map(Json.toJson(_))),
         Tag.namespace -> Some(namespace)

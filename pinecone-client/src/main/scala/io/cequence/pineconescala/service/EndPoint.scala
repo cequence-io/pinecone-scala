@@ -2,17 +2,17 @@ package  io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.EnumValue
 
-sealed abstract class Command(value: String = "") extends EnumValue(value)
+sealed abstract class EndPoint(value: String = "") extends EnumValue(value)
 
-object Command {
-  case object describe_index_stats extends Command
-  case object query extends Command
-  case object vectors_delete extends Command("vectors/delete")
-  case object vectors_fetch extends Command("vectors/fetch")
-  case object vectors_update extends Command("vectors/update")
-  case object vectors_upsert extends Command("vectors/upsert")
-  case object collections extends Command
-  case object databases extends Command
+object EndPoint {
+  case object describe_index_stats extends EndPoint
+  case object query extends EndPoint
+  case object vectors_delete extends EndPoint("vectors/delete")
+  case object vectors_fetch extends EndPoint("vectors/fetch")
+  case object vectors_update extends EndPoint("vectors/update")
+  case object vectors_upsert extends EndPoint("vectors/upsert")
+  case object collections extends EndPoint
+  case object databases extends EndPoint
 }
 
 sealed abstract class Tag(value: String = "") extends EnumValue(value)

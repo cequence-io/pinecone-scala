@@ -28,7 +28,7 @@ private class PineconeIndexServiceImpl(
   implicit val ec: ExecutionContext, val materializer: Materializer
 ) extends PineconeIndexService with WSRequestHelper {
 
-  override protected type PEP = Command
+  override protected type PEP = EndPoint
   override protected type PT = Tag
   override protected val coreUrl = s"https://controller.${environment}.pinecone.io/"
 
@@ -41,7 +41,7 @@ private class PineconeIndexServiceImpl(
     )
 
   override def listCollections: Future[Seq[String]] =
-    execGET(Command.collections).map(
+    execGET(EndPoint.collections).map(
       _.asSafe[Seq[String]]
     )
 
@@ -50,7 +50,7 @@ private class PineconeIndexServiceImpl(
     source: String
   ): Future[CreateResponse] =
     execPOSTWithStatus(
-      Command.collections,
+      EndPoint.collections,
       bodyParams = jsonBodyParams(
         Tag.name -> Some(name),
         Tag.source -> Some(source)
@@ -71,7 +71,7 @@ private class PineconeIndexServiceImpl(
     collectionName: String
   ): Future[Option[CollectionInfo]] =
     execGETWithStatus(
-      Command.collections,
+      EndPoint.collections,
       endPointParam = Some(collectionName)
     ).map { response =>
       handleNotFoundAndError(response).map(
@@ -83,7 +83,7 @@ private class PineconeIndexServiceImpl(
     collectionName: String
   ): Future[DeleteResponse] =
     execDELETEWithStatus(
-      Command.collections,
+      EndPoint.collections,
       endPointParam = Some(collectionName),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
@@ -97,7 +97,7 @@ private class PineconeIndexServiceImpl(
     }
 
   override def listIndexes: Future[Seq[String]] =
-    execGET(Command.databases).map(
+    execGET(EndPoint.databases).map(
       _.asSafe[Seq[String]]
     )
 
@@ -107,7 +107,7 @@ private class PineconeIndexServiceImpl(
     settings: CreateIndexSettings
   ): Future[CreateResponse] =
     execPOSTWithStatus(
-      Command.databases,
+      EndPoint.databases,
       bodyParams = jsonBodyParams(
         Tag.name -> Some(name),
         Tag.dimension -> Some(dimension),
@@ -134,7 +134,7 @@ private class PineconeIndexServiceImpl(
     indexName: String
   ): Future[Option[IndexInfo]] =
     execGETWithStatus(
-      Command.databases,
+      EndPoint.databases,
       endPointParam = Some(indexName)
     ).map { response =>
       handleNotFoundAndError(response).map(
@@ -146,7 +146,7 @@ private class PineconeIndexServiceImpl(
     indexName: String
   ): Future[DeleteResponse] =
     execDELETEWithStatus(
-      Command.databases,
+      EndPoint.databases,
       endPointParam = Some(indexName),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
@@ -165,7 +165,7 @@ private class PineconeIndexServiceImpl(
     pod_type: Option[PodType.Value]
   ): Future[ConfigureIndexResponse] =
     execPATCHWithStatus(
-      Command.databases,
+      EndPoint.databases,
       endPointParam = Some(indexName),
       bodyParams = jsonBodyParams(
         Tag.replicas -> replicas,
