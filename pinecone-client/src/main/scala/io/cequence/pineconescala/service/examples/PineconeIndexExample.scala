@@ -20,6 +20,8 @@ object PineconeIndexExample extends App {
 
       _ = println(indexes.mkString(", "))
 
+      _ <- service.describeIndex(indexes(0)).map(println(_))
+
       createResponse <- service.createIndex(
         name = "auto-gpt-test",
         dimension = 1536
