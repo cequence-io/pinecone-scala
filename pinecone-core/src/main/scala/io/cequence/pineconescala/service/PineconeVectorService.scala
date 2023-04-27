@@ -12,7 +12,12 @@ import scala.concurrent.Future
  *
  * The following services are supported:
  *
- * - describeIndexStats, query, delete, fetch, update, and upsert
+ *  - describeIndexStats
+ *  - query - by vector or by id
+ *  - delete - by filter or ids, or delete all
+ *  - fetch
+ *  - update
+ *  - upsert
  *
  * @since Apr 2023
  */

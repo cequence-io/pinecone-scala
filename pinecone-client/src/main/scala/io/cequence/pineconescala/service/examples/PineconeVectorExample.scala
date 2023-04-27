@@ -25,7 +25,7 @@ object PineconeVectorExample extends App {
 
       stats <- service.describeIndexStats
 
-      upsertResponse <- service.upsert(
+      vectorUpsertedCount <- service.upsert(
         vectors = Seq(
           PVector(
             id = testIds(0),
@@ -103,7 +103,7 @@ object PineconeVectorExample extends App {
     } yield {
       println(stats)
       println()
-      println(upsertResponse)
+      println(vectorUpsertedCount)
       println()
       println("Before update:")
       println(fetchResponse)

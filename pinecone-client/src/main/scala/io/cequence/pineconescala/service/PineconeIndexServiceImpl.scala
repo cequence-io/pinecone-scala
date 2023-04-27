@@ -114,9 +114,9 @@ private class PineconeIndexServiceImpl(
         Tag.metric -> Some(settings.metric.toString),
         Tag.pods -> Some(settings.pods),
         Tag.replicas -> Some(settings.replicas),
-        Tag.pod_type -> Some(settings.pod_type.toString),
-        Tag.metadata_config -> (if (settings.metadata_config.nonEmpty) Some(settings.metadata_config) else None),
-        Tag.source_collection -> settings.source_collection
+        Tag.pod_type -> Some(settings.podType.toString),
+        Tag.metadata_config -> (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
+        Tag.source_collection -> settings.sourceCollection
       ),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
@@ -162,14 +162,14 @@ private class PineconeIndexServiceImpl(
   override def configureIndex(
     indexName: String,
     replicas: Option[Int],
-    pod_type: Option[PodType.Value]
+    podType: Option[PodType.Value]
   ): Future[ConfigureIndexResponse] =
     execPATCHWithStatus(
       EndPoint.databases,
       endPointParam = Some(indexName),
       bodyParams = jsonBodyParams(
         Tag.replicas -> replicas,
-        Tag.pod_type -> pod_type.map(_.toString)
+        Tag.pod_type -> podType.map(_.toString)
       )
     ).map { response =>
       val (statusCode, message) = statusCodeAndMessage(response)

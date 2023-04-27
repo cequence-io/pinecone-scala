@@ -28,9 +28,9 @@ trait PineconeServiceConsts {
       metric = Metric.cosine,
       pods = 1,
       replicas = 1,
-      pod_type = PodType.p1_x1,
-      metadata_config = Map(),
-      source_collection = None
+      podType = PodType.p1_x1,
+      metadataConfig = Map(),
+      sourceCollection = None
     )
   }
 }

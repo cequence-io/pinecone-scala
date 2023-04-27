@@ -11,9 +11,9 @@ import scala.concurrent.Future
  *
  * The following services are supported:
  *
- * - Collection Operations: listCollections, createCollection, describeCollection, and deleteCollection
+ *  - '''Collection Operations''': listCollections, createCollection, describeCollection, and deleteCollection
  *
- * - Index Operations: listIndexes, creatIndex, describeIndex, deleteIndex, and configureIndex
+ *  - '''Index Operations''': listIndexes, creatIndex, describeIndex, deleteIndex, and configureIndex
  *
  * @since Apr 2023
  */
@@ -113,13 +113,13 @@ trait PineconeIndexService extends PineconeServiceConsts {
    *
    * @param indexName The name of the index
    * @param replicas The desired number of replicas for the index.
-   * @param pod_type The new pod type for the index.
+   * @param podType The new pod type for the index.
    * @return Whether the index was updated successfully or not found.
    * @see <a href="https://docs.pinecone.io/reference/configure_index">Pinecone Doc</a>
    */
   def configureIndex(
     indexName: String,
     replicas: Option[Int],
-    pod_type: Option[PodType.Value]
+    podType: Option[PodType.Value]
   ): Future[ConfigureIndexResponse]
 }
