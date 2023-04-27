@@ -71,7 +71,7 @@ private class PineconeVectorServiceImpl(
       _.asSafe[QueryResponse]
     )
 
-  override def query(
+  override def queryById(
     id: String,
     namespace: String,
     settings: QuerySettings

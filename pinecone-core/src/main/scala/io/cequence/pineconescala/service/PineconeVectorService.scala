@@ -13,7 +13,7 @@ import scala.concurrent.Future
  * The following services are supported:
  *
  *  - describeIndexStats
- *  - query - by vector or by id
+ *  - query - by vector or by id (queryById)
  *  - delete - by filter or ids, or delete all
  *  - fetch
  *  - update
@@ -43,7 +43,7 @@ trait PineconeVectorService extends PineconeServiceConsts {
   def query(
     vector: Seq[Double],
     namespace: String,
-    settings: QuerySettings //  = DefaultSettings.Query
+    settings: QuerySettings = DefaultSettings.Query
   ): Future[QueryResponse]
 
   /**
@@ -56,10 +56,10 @@ trait PineconeVectorService extends PineconeServiceConsts {
    * @return QueryResult
    * @see <a href="https://docs.pinecone.io/reference/query">Pinecone Doc</a>
    */
-  def query(
+  def queryById(
     id: String,
     namespace: String,
-    settings: QuerySettings // = DefaultSettings.Query
+    settings: QuerySettings = DefaultSettings.Query
   ): Future[QueryResponse]
 
   /**
