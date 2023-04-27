@@ -1,6 +1,6 @@
-# Pinecone Scala Client - Core [![version](https://img.shields.io/badge/version-0.0.1-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT)
+# Pinecone Scala - Core [![version](https://img.shields.io/badge/version-0.0.1-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT)
 
-This is the core module, which contains mostly domain classes and the [pineconeService](./src/main/scala/io/cequence/pineconescala/service/pineconeService.scala) definition.
+This is the core module, which contains mostly domain classes and the definition of services: [PineconeVectorService](./src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala).
 Note that the full project documentation can be found [here](../README.md).
 
 ## Installation 🚀
