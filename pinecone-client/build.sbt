@@ -1,6 +1,6 @@
 name := "pinecone-scala-client"
 
-description := "Scala client for Pinecone API implemented using Play WS lib."
+description := "Scala client for Pinecone API implemented with Play WS lib."
 
 lazy val playWsVersion = settingKey[String]("Play WS version to use")
 
