@@ -12,7 +12,7 @@ case class QueryResponse(
 case class Match(
   id: String,
   score: Double,
-  values: Seq[Double],
+  values: Seq[Double], // not returned when includeValues = false
   sparseValues: Option[SparseVector],
-  metadata: Map[String, String]
+  metadata: Option[Map[String, String]] // not returned when includeMetadata = true
 )

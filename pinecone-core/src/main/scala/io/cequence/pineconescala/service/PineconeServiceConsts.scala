@@ -21,7 +21,7 @@ trait PineconeServiceConsts {
     val Query = QuerySettings(
       topK = 10,
       includeValues = false,
-      includeMetadata = false
+      includeMetadata = true // by default include metadata
     )
 
     val CreateIndex = CreateIndexSettings(

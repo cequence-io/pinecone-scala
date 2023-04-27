@@ -35,7 +35,7 @@ or to *pom.xml* (if you use maven)
 ## Config ⚙️
 
 - Env. variables: `PINECONE_SCALA_CLIENT_API_KEY`, and `PINECONE_SCALA_CLIENT_ENV`
-- File config (default):  [pinecone-scala-client.conf](./pinecone-client/src/main/resources/pinecone-scala-client.conf)
+- File config (default): [pinecone-scala-client.conf](./pinecone-client/src/main/resources/pinecone-scala-client.conf)
 
 ## Usage 👨‍🎓
 
@@ -365,6 +365,9 @@ Examples:
     println(stats)      
   )
 ```
+## Demo
+
+For ready-to-run demos pls. refer to a separate seed project demonstrating how to use the client: [here](https://github.com/cequence-io/pinecone-scala-demo).
 
 ## FAQ 🤔
 
