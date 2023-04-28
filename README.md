@@ -367,7 +367,9 @@ Examples:
 ```
 ## Demo
 
-For ready-to-run demos pls. refer to a separate seed project demonstrating how to use the client: [here](https://github.com/cequence-io/pinecone-scala-demo).
+For ready-to-run demos pls. refer to separate seed projects:
+- [Pinecone Scala Demo](https://github.com/cequence-io/pinecone-scala-demo) - shows how to use Pinecone vector, index, and collection operations  
+- [Pinecone + OpenAI Scala Demo](https://github.com/cequence-io/pinecone-openai-scala-demo) - shows how to generate and store OpenAI embeddings into Pinecone and query them afterwards
 
 ## FAQ 🤔
 
@@ -401,7 +403,7 @@ This library is available and published as open source under the terms of the [M
 
 ## Contributors 🙏
 
-This project is open-source and welcomes any contribution or feedback ([here](https://github.com/cequence-io/pinecone-scala-client/issues)).
+This project is open-source and welcomes any contribution or feedback ([here](https://github.com/cequence-io/pinecone-scala/issues)).
 
 Development of this library has been supported by  [<img src="https://cequence.io/favicon-16x16.png"> - Cequence.io](https://cequence.io) - `The future of contracting` 
 
