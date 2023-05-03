@@ -12,6 +12,8 @@ Also, we aimed the lib to be self-contained with the fewest dependencies possibl
 
 **✔️ Important**: this is a "community-maintained" library and, as such, has no relation to Pinecone company.
 
+👉 Check out an article about the lib/client on [Medium](https://medium.com/@0xbnd/pinecone-scala-client-just-landed-53b3638e61b3).
+
 ## Installation 🚀
 
 The currently supported Scala versions are **2.12, 2.13**, and **3**.  
