@@ -18,9 +18,9 @@ object JsonFormats {
 
   // index/collection formats
   implicit val collectionInfoFormat: Format[CollectionInfo] = Json.format[CollectionInfo]
-  implicit val indexStatusFormat: Format[IndexStatus.Value] = EnumFormat(IndexStatus)
-  implicit val podTypeFormat: Format[PodType.Value] = EnumFormat(PodType)
-  implicit val metricFormat: Format[Metric.Value] = EnumFormat(Metric)
+  implicit val indexStatusFormat: Format[IndexStatus.Value] = EnumFormat(IndexStatus.values)
+  implicit val podTypeFormat: Format[PodType.Value] = EnumFormat(PodType.values)
+  implicit val metricFormat: Format[Metric.Value] = EnumFormat(Metric.values)
   implicit val indexConfigFormat: Format[IndexConfig] = Json.format[IndexConfig]
   implicit val indexDatabaseInfoFormat: Format[IndexDatabaseInfo] = Json.format[IndexDatabaseInfo]
   implicit val indexStatusInfoFormat: Format[IndexStatusInfo] = Json.format[IndexStatusInfo]

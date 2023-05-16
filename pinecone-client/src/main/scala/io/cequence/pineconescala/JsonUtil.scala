@@ -96,23 +96,25 @@ object JsonUtil {
     }
   }
 
-  private class EnumFormat[E <: Enumeration](enum: E) extends Format[E#Value] {
+  private class EnumFormat[E](values: Iterable[E]) extends Format[E] {
 
-    def reads(json: JsValue): JsResult[E#Value] = json match {
+    private val stringValueMap = values.map(v => (v.toString, v)).toMap
+
+    def reads(json: JsValue): JsResult[E] = json match {
       case JsString(s) =>
-        try {
-          JsSuccess(enum.withName(s))
-        } catch {
-          case _: NoSuchElementException => JsError(s"Enumeration expected of type: '${enum.getClass}', but it does not appear to contain the value: '$s'")
-        }
+        stringValueMap.get(s).map(
+          JsSuccess(_)
+        ).getOrElse(
+          JsError(s"Enumeration values do not contain a string: '$s'")
+        )
 
       case _ => JsError("String value expected")
     }
 
-    def writes(v: E#Value): JsValue = JsString(v.toString)
+    def writes(v: E): JsValue = JsString(v.toString)
   }
 
   object EnumFormat {
-    def apply[E <: Enumeration](enum: E): Format[E#Value] = new EnumFormat[E](enum)
+    def apply[E](values: Iterable[E]): Format[E] = new EnumFormat[E](values: Iterable[E])
   }
 }
