@@ -16,7 +16,7 @@ case class IndexDatabaseInfo(
   pods: Int,
   replicas: Int,
   shards: Int,
-  pod_type: PodType.Value
+  pod_type: Option[PodType.Value] // undefined for indexes running on "free" envs
 )
 
 case class IndexStatusInfo(
