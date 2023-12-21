@@ -122,4 +122,9 @@ trait PineconeIndexService extends PineconeServiceConsts {
     replicas: Option[Int],
     podType: Option[PodType.Value]
   ): Future[ConfigureIndexResponse]
+
+  /**
+   * Closes the underlying ws client, and releases all its resources.
+   */
+  def close(): Unit
 }

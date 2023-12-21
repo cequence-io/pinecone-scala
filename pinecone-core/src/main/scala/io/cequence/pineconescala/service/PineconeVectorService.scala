@@ -148,4 +148,9 @@ trait PineconeVectorService extends PineconeServiceConsts {
     vectors: Seq[PVector],
     namespace: String
   ): Future[Int]
+
+  /**
+   * Closes the underlying ws client, and releases all its resources.
+   */
+  def close(): Unit
 }
