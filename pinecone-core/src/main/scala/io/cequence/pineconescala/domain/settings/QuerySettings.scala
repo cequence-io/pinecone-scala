@@ -8,7 +8,7 @@ case class QuerySettings(
 
   // The filter to apply. You can use vector metadata to limit your search.
   // See https://www.pinecone.io/docs/metadata-filtering/.
-  filter: Map[String, String] = Map(),
+  filter: Map[String, Any] = Map(),
 
   // Indicates whether vector values are included in the response.
   includeValues: Boolean,
