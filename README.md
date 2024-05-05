@@ -1,5 +1,5 @@
 # Pinecone Scala Client 🗂️
-[![version](https://img.shields.io/badge/version-0.1.1-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
+[![version](https://img.shields.io/badge/version-0.1.2-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
 
 This is an intuitive async Scala client for Pinecone API supporting all the available vector and index/collection operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
@@ -21,7 +21,7 @@ The currently supported Scala versions are **2.12, 2.13**, and **3**.
 To pull the library you have to add the following dependency to your *build.sbt*
 
 ```
-"io.cequence" %% "pinecone-scala-client" % "0.1.1"
+"io.cequence" %% "pinecone-scala-client" % "0.1.2"
 ```
 
 or to *pom.xml* (if you use maven)
@@ -30,13 +30,13 @@ or to *pom.xml* (if you use maven)
 <dependency>
     <groupId>io.cequence</groupId>
     <artifactId>pinecone-scala-client_2.12</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 
 ## Config ⚙️
 
-- Env. variables: `PINECONE_SCALA_CLIENT_API_KEY`, and `PINECONE_SCALA_CLIENT_ENV`
+- Env. variables: `PINECONE_SCALA_CLIENT_API_KEY`, and `PINECONE_SCALA_CLIENT_ENV` if pod-based service is used
 - File config (default): [pinecone-scala-client.conf](./pinecone-client/src/main/resources/pinecone-scala-client.conf)
 
 ## Usage 👨‍🎓
@@ -50,7 +50,7 @@ First you need to provide an implicit execution context as well as akka material
   implicit val materializer = Materializer(ActorSystem())
 ```
 
-Then you can obtain a service in one of the following ways.
+Then you can obtain a service (pod or serverless-based) in one of the following ways.
 
 - Default config (expects env. variable(s) to be set as defined in `Config` section)
 
@@ -64,11 +64,18 @@ Then you can obtain a service in one of the following ways.
   val service = PineconeIndexServiceFactory(config)
 ```
 
-- Without config
+- Without config for pod-based service (with env)
 ```scala
   val service = PineconeIndexServiceFactory(
     apiKey = "your_api_key",
-    environment = "your_env" // e.g. "northamerica-northeast1-gcp
+    environment = Some("your_env") // e.g. "northamerica-northeast1-gcp
+  )
+```
+
+- Without config for serverless service
+```scala
+  val service = PineconeIndexServiceFactory(
+    apiKey = "your_api_key"
   )
 ```
 
@@ -390,7 +397,7 @@ pinecone-scala-client {
 }
 ```
 
-2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/0.1.1/pinecone-scala-client_2.13-0.1.1.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
+2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/0.1.2/pinecone-scala-client_2.13-0.1.2.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
 
    Set the env. variable `PINECONE_SCALA_CLIENT_API_KEY`. If you don't have one register [here](https://app.pinecone.io/?sessionType=signup).
 
