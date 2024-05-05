@@ -15,6 +15,10 @@ object JsonFormats {
   implicit val matchFormat: Format[Match] = Json.format[Match]
   implicit val queryResultFormat: Format[QueryResponse] = Json.format[QueryResponse]
   implicit val fetchResponseFormat: Format[FetchResponse] = Json.format[FetchResponse]
+  implicit val vectorIdFormat: Format[VectorId] = Json.format[VectorId]
+  implicit val listVectorIdsPaginationFormat: Format[ListVectorIdsPagination] = Json.format[ListVectorIdsPagination]
+  implicit val listVectorIdsResponseFormat: Format[ListVectorIdsResponse] = Json.format[ListVectorIdsResponse]
+
 
   // index/collection formats
   implicit val collectionInfoFormat: Format[CollectionInfo] = Json.format[CollectionInfo]

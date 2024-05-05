@@ -91,6 +91,24 @@ private class PineconeVectorServiceImpl(
       _.asSafe[QueryResponse]
     )
 
+  override def listVectorIDs(
+    namespace: String,
+    limit: Option[Int],
+    paginationToken: Option[String],
+    prefix: Option[String],
+  ): Future[ListVectorIdsResponse] =
+    execGET(
+      EndPoint.vectors_list,
+      params = Seq(
+        Tag.namespace -> Some(namespace),
+        Tag.limit -> limit,
+        Tag.paginationToken -> paginationToken,
+        Tag.prefix -> prefix
+      )
+    ).map(
+      _.asSafe[ListVectorIdsResponse]
+    )
+
   override def delete(
     ids: Seq[String],
     namespace: String

@@ -63,6 +63,30 @@ trait PineconeVectorService extends PineconeServiceConsts {
   ): Future[QueryResponse]
 
   /**
+   * The list operation lists the IDs of vectors in a single namespace.
+   * An optional prefix can be passed to limit the results to IDs with a common prefix.
+   *
+   * It returns up to 100 IDs at a time by default in sorted order (bitwise/"C" collation).
+   * If the limit parameter is set, list returns up to that number of IDs instead.
+   * Whenever there are additional IDs to return, the response also includes a pagination_token that you can use to get the next batch of IDs.
+   * When the response does not includes a pagination_token, there are no more IDs to return.
+   *
+   * @param namespace
+   * @param limit
+   * @param paginationToken
+   * @param prefix
+   *
+   * @return List of vector IDs wrapped in a ListVectorIdsResponse
+   * @see <a href="https://docs.pinecone.io/reference/list">Pinecone Doc</a>
+   */
+  def listVectorIDs(
+    namespace: String,
+    limit: Option[Int] = None,
+    paginationToken: Option[String] = None,
+    prefix: Option[String] = None,
+  ): Future[ListVectorIdsResponse]
+
+  /**
    * The Delete operation deletes vectors, by id, from a single namespace.
    *
    * @param ids Vectors to delete.

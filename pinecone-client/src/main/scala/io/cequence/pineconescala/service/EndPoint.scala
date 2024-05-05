@@ -9,6 +9,7 @@ object EndPoint {
   case object query extends EndPoint
   case object vectors_delete extends EndPoint("vectors/delete")
   case object vectors_fetch extends EndPoint("vectors/fetch")
+  case object vectors_list extends EndPoint("vectors/list")
   case object vectors_update extends EndPoint("vectors/update")
   case object vectors_upsert extends EndPoint("vectors/upsert")
   case object collections extends EndPoint
@@ -42,4 +43,7 @@ object Tag {
   case object metadata_config extends Tag
   case object source_collection extends Tag
   case object indexName extends Tag
+  case object limit extends Tag
+  case object paginationToken extends Tag
+  case object prefix extends Tag
 }
