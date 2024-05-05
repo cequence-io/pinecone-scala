@@ -14,6 +14,7 @@ object EndPoint {
   case object vectors_upsert extends EndPoint("vectors/upsert")
   case object collections extends EndPoint
   case object databases extends EndPoint
+  case object indexes extends EndPoint
 }
 
 sealed abstract class Tag(value: String = "") extends EnumValue(value)

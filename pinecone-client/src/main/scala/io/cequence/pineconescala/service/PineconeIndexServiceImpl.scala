@@ -2,15 +2,16 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
+import io.cequence.pineconescala.ConfigImplicits.ConfigExt
 import play.api.libs.ws.StandaloneWSRequest
 import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.ConfigImplicits._
-import io.cequence.pineconescala.domain.{PVector, PodType}
+import io.cequence.pineconescala.domain.PodType
 import io.cequence.pineconescala.service.ws.{Timeouts, WSRequestHelper}
+import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -18,19 +19,23 @@ import scala.concurrent.{ExecutionContext, Future}
  * Private impl. class of [[PineconeIndexService]].
  *
  * @param apiKey
- * @param environment
+ * @param environment (optional)
  * @since Apr 2023
  */
 private class PineconeIndexServiceImpl(
   apiKey: String,
-  environment: String,
+  environment: Option[String] = None,
   explTimeouts: Option[Timeouts] = None)(
   implicit val ec: ExecutionContext, val materializer: Materializer
 ) extends PineconeIndexService with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-  override protected val coreUrl = s"https://controller.${environment}.pinecone.io/"
+  override protected val coreUrl = environment.map(env =>
+    s"https://controller.$env.pinecone.io/"
+  ).getOrElse(
+    "https://api.pinecone.io/"
+  )
 
   override protected def timeouts: Timeouts =
     explTimeouts.getOrElse(
@@ -97,17 +102,21 @@ private class PineconeIndexServiceImpl(
     }
 
   override def listIndexes: Future[Seq[String]] =
-    execGET(EndPoint.databases).map(
-      _.asSafe[Seq[String]]
+    execGET(indexesEndpoint).map(response =>
+      (response \ "indexes").toOption.map(
+        _.asSafe[Seq[JsObject]].map(_.toString()) // TODO
+      ).getOrElse(
+        response.asSafe[Seq[String]]
+      )
     )
 
   override def createIndex(
     name: String,
     dimension: Int,
-    settings: CreateIndexSettings
+    settings: CreatePodBasedIndexSettings // TODO
   ): Future[CreateResponse] =
     execPOSTWithStatus(
-      EndPoint.databases,
+      indexesEndpoint,
       bodyParams = jsonBodyParams(
         Tag.name -> Some(name),
         Tag.dimension -> Some(dimension),
@@ -134,7 +143,7 @@ private class PineconeIndexServiceImpl(
     indexName: String
   ): Future[Option[IndexInfo]] =
     execGETWithStatus(
-      EndPoint.databases,
+      indexesEndpoint,
       endPointParam = Some(indexName)
     ).map { response =>
       handleNotFoundAndError(response).map(
@@ -146,7 +155,7 @@ private class PineconeIndexServiceImpl(
     indexName: String
   ): Future[DeleteResponse] =
     execDELETEWithStatus(
-      EndPoint.databases,
+      indexesEndpoint,
       endPointParam = Some(indexName),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
@@ -165,7 +174,7 @@ private class PineconeIndexServiceImpl(
     podType: Option[PodType.Value]
   ): Future[ConfigureIndexResponse] =
     execPATCHWithStatus(
-      EndPoint.databases,
+      indexesEndpoint,
       endPointParam = Some(indexName),
       bodyParams = jsonBodyParams(
         Tag.replicas -> replicas,
@@ -183,6 +192,11 @@ private class PineconeIndexServiceImpl(
     }
 
   // aux
+
+  // if environment is specified (pod-based arch) we use databases endpoint,
+  // otherwise (serverless arch) we use indexes endpoint
+  private def indexesEndpoint =
+    environment.map(_ => EndPoint.databases).getOrElse(EndPoint.indexes)
 
   override protected def getWSRequestOptional(
     endPoint: Option[PEP],
@@ -219,7 +233,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply(
     apiKey: String,
-    environment: String,
+    environment: Option[String] = None,
     timeouts: Option[Timeouts] = None)(
     implicit ec: ExecutionContext, materializer: Materializer
   ): PineconeIndexService =
@@ -238,7 +252,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
     apply(
       apiKey = config.getString(s"$configPrefix.apiKey"),
-      environment = config.getString(s"$configPrefix.environment"),
+      environment = config.optionalString(s"$configPrefix.environment"),
       timeouts = timeoutsToOption(timeouts)
     )
   }

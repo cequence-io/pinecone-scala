@@ -24,7 +24,7 @@ trait PineconeServiceConsts {
       includeMetadata = true // by default include metadata
     )
 
-    val CreateIndex = CreateIndexSettings(
+    val CreateIndex = CreatePodBasedIndexSettings(
       metric = Metric.cosine,
       pods = 1,
       replicas = 1,

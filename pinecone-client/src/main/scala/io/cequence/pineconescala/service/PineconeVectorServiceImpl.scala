@@ -7,15 +7,12 @@ import play.api.libs.json.Json
 import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.ConfigImplicits._
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.domain.response.IndexStats
 import io.cequence.pineconescala.domain.settings.QuerySettings
 
-import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -35,8 +32,6 @@ private class PineconeVectorServiceImpl(
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-
-//  override protected val coreUrl = s"https://${indexName}-${projectId}.svc.${environment}.pinecone.io/"
 
   override protected def timeouts: Timeouts =
     explTimeouts.getOrElse(

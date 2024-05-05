@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.{CreateIndexSettings, QuerySettings}
+import io.cequence.pineconescala.domain.settings.{CreatePodBasedIndexSettings, QuerySettings}
 import io.cequence.pineconescala.domain.{PVector, PodType}
 
 import scala.concurrent.Future
@@ -83,7 +83,7 @@ trait PineconeIndexService extends PineconeServiceConsts {
   def createIndex(
     name: String,
     dimension: Int,
-    settings: CreateIndexSettings = DefaultSettings.CreateIndex
+    settings: CreatePodBasedIndexSettings = DefaultSettings.CreateIndex
   ): Future[CreateResponse]
 
   /**

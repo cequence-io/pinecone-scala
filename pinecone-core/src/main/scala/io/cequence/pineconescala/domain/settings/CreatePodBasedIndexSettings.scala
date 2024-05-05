@@ -2,7 +2,7 @@ package io.cequence.pineconescala.domain.settings
 
 import io.cequence.pineconescala.domain.{Metric, PodType}
 
-case class CreateIndexSettings(
+case class CreatePodBasedIndexSettings(
   // The distance metric to be used for similarity search.
   // You can use 'euclidean', 'cosine', or 'dotproduct'.
   metric: Metric.Value,
