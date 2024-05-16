@@ -243,7 +243,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     implicit ec: ExecutionContext, materializer: Materializer
   ): Future[Option[PineconeVectorService]] =
     pineconeIndexService.describeIndex(indexName).map(_.map(indexInfo =>
-      apply(apiKey, s"https://${indexInfo.status.host}", timeouts)
+      apply(apiKey, s"https://${indexInfo.host}", timeouts)
     ))
 
   def apply(

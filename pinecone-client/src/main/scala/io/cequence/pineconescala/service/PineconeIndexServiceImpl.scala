@@ -146,8 +146,14 @@ private class PineconeIndexServiceImpl(
       indexesEndpoint,
       endPointParam = Some(indexName)
     ).map { response =>
-      handleNotFoundAndError(response).map(
-        _.asSafe[IndexInfo]
+      handleNotFoundAndError(response).map( json =>
+        if (environment.isDefined) {
+          // pod-based
+          json.asSafe[PodBasedIndexInfo]
+        } else {
+          // serverless-based
+          json.asSafe[ServerlessIndexInfo]
+        }
       )
     }
 

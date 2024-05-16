@@ -25,8 +25,16 @@ object JsonFormats {
   implicit val indexStatusFormat: Format[IndexStatus.Value] = EnumFormat(IndexStatus.values)
   implicit val podTypeFormat: Format[PodType.Value] = EnumFormat(PodType.values)
   implicit val metricFormat: Format[Metric.Value] = EnumFormat(Metric.values)
-  implicit val indexConfigFormat: Format[IndexConfig] = Json.format[IndexConfig]
-  implicit val indexDatabaseInfoFormat: Format[IndexDatabaseInfo] = Json.format[IndexDatabaseInfo]
-  implicit val indexStatusInfoFormat: Format[IndexStatusInfo] = Json.format[IndexStatusInfo]
-  implicit val indexInfoFormat: Format[IndexInfo] = Json.format[IndexInfo]
+
+  // pod-based
+  implicit val indexConfigFormat: Format[PodBasedIndexConfig] = Json.format[PodBasedIndexConfig]
+  implicit val indexDatabaseInfoFormat: Format[PodBasedIndexDatabaseInfo] = Json.format[PodBasedIndexDatabaseInfo]
+  implicit val indexStatusInfoFormat: Format[PodBasedIndexStatusInfo] = Json.format[PodBasedIndexStatusInfo]
+  implicit val indexInfoFormat: Format[PodBasedIndexInfo] = Json.format[PodBasedIndexInfo]
+
+  // serverless
+  implicit val serverlessIndexStatusFormat: Format[ServerlessIndexStatus] = Json.format[ServerlessIndexStatus]
+  implicit val serverlessIndexSpecAuxFormat: Format[ServerlessIndexSpecAux] = Json.format[ServerlessIndexSpecAux]
+  implicit val serverlessIndexSpecFormat: Format[ServerlessIndexSpec] = Json.format[ServerlessIndexSpec]
+  implicit val serverlessIndexInfoFormat: Format[ServerlessIndexInfo] = Json.format[ServerlessIndexInfo]
 }
