@@ -21,10 +21,14 @@ def playWsDependencies(scalaVersion: String) =
       typesafePlayWS("2.2.0-M3")
 
     case Some((3, 2)) =>
-      typesafePlayWS("2.2.0-M2") // Version "2.2.0-M3" was produced by an unstable release: Scala 3.3.0-RC3
+      typesafePlayWS(
+        "2.2.0-M2"
+      ) // Version "2.2.0-M3" was produced by an unstable release: Scala 3.3.0-RC3
 
     case Some((3, 3)) =>
-      orgPlayWS("3.0.0") // needs some work because of the akka -> pekko migration (https://pekko.apache.org/docs/pekko/current/project/migration-guides.html)
+      orgPlayWS(
+        "3.0.0"
+      ) // needs some work because of the akka -> pekko migration (https://pekko.apache.org/docs/pekko/current/project/migration-guides.html)
 
     // failover to the latest version
     case _ =>
@@ -32,3 +36,6 @@ def playWsDependencies(scalaVersion: String) =
   }
 
 libraryDependencies ++= playWsDependencies(scalaVersion.value)
+libraryDependencies ++= Seq(
+  "io.cequence" %% "ws-client" % "0.1-SNAPSHOT"
+)
