@@ -1,7 +1,7 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
 import com.typesafe.config.Config
-import io.cequence.pineconescala.service.ws.Timeouts
+import io.cequence.openaiscala.service.ws.Timeouts
 import io.cequence.pineconescala.ConfigImplicits._
 
 trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
@@ -21,7 +21,8 @@ trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
   }
 
   protected def timeoutsToOption(timeouts: Timeouts) =
-    if (timeouts.requestTimeout.isDefined
+    if (
+      timeouts.requestTimeout.isDefined
       || timeouts.readTimeout.isDefined
       || timeouts.connectTimeout.isDefined
       || timeouts.pooledConnectionIdleTimeout.isDefined
