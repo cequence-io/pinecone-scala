@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import com.typesafe.config.Config
-import io.cequence.openaiscala.service.ws.Timeouts
+import io.cequence.wsclient.service.ws.Timeouts
 import io.cequence.pineconescala.ConfigImplicits._
 
 trait PineconeServiceFactoryHelper extends PineconeServiceConsts {

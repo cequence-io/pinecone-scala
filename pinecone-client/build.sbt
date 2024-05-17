@@ -43,3 +43,7 @@ libraryDependencies += "org.scalatestplus" %% "mockito-4-11" % "3.2.18.0" % Test
 libraryDependencies ++= Seq(
   "io.cequence" %% "ws-client" % "0.1-SNAPSHOT"
 )
+
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.18"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % Test
+libraryDependencies += "org.scalatestplus" %% "mockito-4-11" % "3.2.18.0" % Test

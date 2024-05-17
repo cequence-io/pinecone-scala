@@ -10,7 +10,7 @@ import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.PodType
-import io.cequence.openaiscala.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}

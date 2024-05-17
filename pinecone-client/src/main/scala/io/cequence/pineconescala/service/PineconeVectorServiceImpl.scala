@@ -9,7 +9,7 @@ import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
-import io.cequence.openaiscala.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.domain.response.IndexStats
 import io.cequence.pineconescala.domain.settings.QuerySettings
 
