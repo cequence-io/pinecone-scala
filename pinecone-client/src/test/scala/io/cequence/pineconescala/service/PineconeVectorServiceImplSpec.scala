@@ -51,8 +51,9 @@ class PineconeVectorServiceImplSpec
     s"describeIndexStats should not contain the namespace 'pinecone-test'" in {
       for {
         service <- vectorServiceBuilder
+        _ <- service.deleteAll(namespace)
         stats <- service.describeIndexStats
-      } yield stats.namespaces.keys.toSet shouldNot contain("pinecone-test")
+      } yield stats.namespaces.keys.toSet shouldNot contain(namespace)
     }
 
     "upsert should insert a vector" in withTearingDownStore { service =>
