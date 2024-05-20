@@ -32,13 +32,11 @@ class PineconeVectorServiceImplSpec
 
   def withTearingDownStore(testFun: PineconeVectorService => Future[Assertion])
     : Future[Assertion] = {
-    val result2: Future[Assertion] = vectorServiceBuilder.flatMap { vectorService =>
+    vectorServiceBuilder.flatMap { vectorService =>
       val result = testFun(vectorService)
-      println("Deleting vectors and namespace after the test")
       vectorService.deleteAll(namespace)
       result
     }
-    result2
   }
 
   "Pinecone Vector Service" when {
@@ -53,8 +51,9 @@ class PineconeVectorServiceImplSpec
     s"describeIndexStats should not contain the namespace 'pinecone-test'" in {
       for {
         service <- vectorServiceBuilder
+        _ <- service.deleteAll(namespace)
         stats <- service.describeIndexStats
-      } yield stats.namespaces.keys.toSet shouldNot contain("pinecone-test")
+      } yield stats.namespaces.keys.toSet shouldNot contain(namespace)
     }
 
     "upsert should insert a vector" in withTearingDownStore { service =>
