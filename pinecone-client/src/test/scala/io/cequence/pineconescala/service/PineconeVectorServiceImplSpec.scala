@@ -32,13 +32,11 @@ class PineconeVectorServiceImplSpec
 
   def withTearingDownStore(testFun: PineconeVectorService => Future[Assertion])
     : Future[Assertion] = {
-    val result2: Future[Assertion] = vectorServiceBuilder.flatMap { vectorService =>
+    vectorServiceBuilder.flatMap { vectorService =>
       val result = testFun(vectorService)
-      println("Deleting vectors and namespace after the test")
       vectorService.deleteAll(namespace)
       result
     }
-    result2
   }
 
   "Pinecone Vector Service" when {
