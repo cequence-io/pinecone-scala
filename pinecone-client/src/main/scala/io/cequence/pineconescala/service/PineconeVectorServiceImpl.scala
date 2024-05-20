@@ -7,11 +7,16 @@ import play.api.libs.json.Json
 import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
+import io.cequence.pineconescala.domain.IndexEnv.{PodEnv, ServerlessEnv}
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.domain.{IndexEnv, PVector, SparseVector}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.domain.response.IndexStats
-import io.cequence.pineconescala.domain.settings.QuerySettings
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+  CreatePodBasedIndexSettings,
+  CreateServerlessIndexSettings
+}
+import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -225,16 +230,19 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     apply(
       apiKey = config.getString(s"$configPrefix.apiKey"),
       indexName = indexName,
-      timeouts = timeoutsToOption(timeouts),
-      pineconeIndexService = PineconeIndexServiceFactory(config)
+      timeouts = timeouts.toOption,
+      pineconeIndexService = PineconeIndexServiceFactory(config) match {
+        case Left(value)  => value
+        case Right(value) => value
+      }
     )
   }
 
-  def apply(
+  def apply[S <: IndexSettingsType, E <: IndexEnv](
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,
-    pineconeIndexService: PineconeIndexService
+    pineconeIndexService: PineconeIndexService[S, E]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer

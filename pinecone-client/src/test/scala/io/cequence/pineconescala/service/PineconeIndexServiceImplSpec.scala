@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.domain.response.{CollectionInfo, FetchResponse, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.{Pod, Serverless}
 import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AsyncWordSpec
@@ -17,8 +18,8 @@ class PineconeIndexServiceImplSpec extends AsyncWordSpec with GivenWhenThen with
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
-  def pineconeIndexService: PineconeIndexService =
-    PineconeIndexServiceFactory()
+  def pineconeIndexService: Pod =
+    PineconeIndexServiceFactory().left.get
 
   "Pinecone Index Service" when {
 

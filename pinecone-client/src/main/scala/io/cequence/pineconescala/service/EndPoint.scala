@@ -1,8 +1,9 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.EnumValue
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.CreatePodBasedIndexSettings
+import io.cequence.pineconescala.domain.{EnumValue, NamedEnumValue}
 
-sealed abstract class EndPoint(value: String = "") extends EnumValue(value)
+sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
 object EndPoint {
   case object describe_index_stats extends EndPoint
@@ -17,7 +18,7 @@ object EndPoint {
   case object indexes extends EndPoint
 }
 
-sealed abstract class Tag(value: String = "") extends EnumValue(value)
+sealed abstract class Tag(value: String = "") extends NamedEnumValue(value)
 
 object Tag {
   case object filter extends Tag
@@ -47,4 +48,22 @@ object Tag {
   case object limit extends Tag
   case object paginationToken extends Tag
   case object prefix extends Tag
+
+  def fromCreatePodBasedIndexSettings(
+    name: String,
+    dimension: Int,
+    settings: CreatePodBasedIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(settings.metric.toString),
+      Tag.pods -> Some(settings.pods),
+      Tag.replicas -> Some(settings.replicas),
+      Tag.pod_type -> Some(settings.podType.toString),
+      Tag.metadata_config ->
+        (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
+      Tag.source_collection -> settings.sourceCollection
+    )
+  }
 }

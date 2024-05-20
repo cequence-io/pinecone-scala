@@ -1,5 +1,6 @@
 package  io.cequence.pineconescala.service
 
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.CreatePodBasedIndexSettings
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.pineconescala.domain.settings._
 

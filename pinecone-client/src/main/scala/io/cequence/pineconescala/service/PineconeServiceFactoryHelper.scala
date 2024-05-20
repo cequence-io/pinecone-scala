@@ -8,7 +8,7 @@ trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
 
   protected def loadTimeouts(
     config: Config
-  ) = {
+  ): Timeouts = {
     def intTimeoutAux(fieldName: String) =
       config.optionalInt(s"$configPrefix.timeouts.${fieldName}Sec").map(_ * 1000)
 
@@ -20,14 +20,4 @@ trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
     )
   }
 
-  protected def timeoutsToOption(timeouts: Timeouts) =
-    if (
-      timeouts.requestTimeout.isDefined
-      || timeouts.readTimeout.isDefined
-      || timeouts.connectTimeout.isDefined
-      || timeouts.pooledConnectionIdleTimeout.isDefined
-    )
-      Some(timeouts)
-    else
-      None
 }
