@@ -215,27 +215,7 @@ private class PineconeIndexServiceImpl(
   private def indexesEndpoint =
     environment.map(_ => EndPoint.databases).getOrElse(EndPoint.indexes)
 
-  override protected def getWSRequestOptional(
-    endPoint: Option[PEP],
-    endPointParam: Option[String],
-    params: Seq[(String, Option[Any])] = Nil
-  ) =
-    addHeaders(super.getWSRequestOptional(endPoint, endPointParam, params))
-
-  override protected def getWSRequest(
-    endPoint: Option[PEP],
-    endPointParam: Option[String],
-    params: Seq[(String, Any)] = Nil
-  ) =
-    addHeaders(
-      super.getWSRequest(
-        endPoint,
-        endPointParam,
-        params
-      )
-    )
-
-  private def addHeaders(request: StandaloneWSRequest) = {
+  override def addHeaders(request: StandaloneWSRequest) = {
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }

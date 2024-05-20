@@ -197,9 +197,7 @@ private class PineconeVectorServiceImpl(
       }
     )
 
-  // aux
-
-  private def addHeaders(request: StandaloneWSRequest) = {
+  override def addHeaders(request: StandaloneWSRequest) = {
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }
