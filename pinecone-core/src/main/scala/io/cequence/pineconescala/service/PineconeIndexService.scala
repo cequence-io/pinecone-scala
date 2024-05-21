@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.{IndexEnv, PodType}
+import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{IndexSettings, IndexSettingsType}
 
@@ -21,8 +21,7 @@ import scala.concurrent.Future
  * @since Apr
  *   2023
  */
-trait PineconeIndexService[S <: IndexSettingsType, E <: IndexEnv]
-    extends PineconeServiceConsts {
+trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts {
 
   /**
    * This operation returns a list of your Pinecone collections.
@@ -108,6 +107,7 @@ trait PineconeIndexService[S <: IndexSettingsType, E <: IndexEnv]
   def createIndex(
     name: String,
     dimension: Int,
+    metric: Metric.Value,
     settings: S // CreatePodBasedIndexSettings = DefaultSettings.CreateIndex
   ): Future[CreateResponse]
 

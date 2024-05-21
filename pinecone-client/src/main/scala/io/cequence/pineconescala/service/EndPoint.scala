@@ -1,7 +1,10 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.CreatePodBasedIndexSettings
-import io.cequence.pineconescala.domain.{EnumValue, NamedEnumValue}
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+  CreatePodBasedIndexSettings,
+  CreateServerlessIndexSettings
+}
+import io.cequence.pineconescala.domain.{EnumValue, Metric, NamedEnumValue}
 
 sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
@@ -48,22 +51,40 @@ object Tag {
   case object limit extends Tag
   case object paginationToken extends Tag
   case object prefix extends Tag
+  case object cloud extends Tag
+  case object region extends Tag
 
   def fromCreatePodBasedIndexSettings(
     name: String,
     dimension: Int,
+    metric: Metric.Value,
     settings: CreatePodBasedIndexSettings
   ): Seq[(Tag, Option[Any])] = {
     Seq(
       Tag.name -> Some(name),
       Tag.dimension -> Some(dimension),
-      Tag.metric -> Some(settings.metric.toString),
+      Tag.metric -> Some(metric.toString),
       Tag.pods -> Some(settings.pods),
       Tag.replicas -> Some(settings.replicas),
       Tag.pod_type -> Some(settings.podType.toString),
       Tag.metadata_config ->
         (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
       Tag.source_collection -> settings.sourceCollection
+    )
+  }
+
+  def fromCreateServerlessIndexSettings(
+    name: String,
+    dimension: Int,
+    metric: Metric.Value,
+    settings: CreateServerlessIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(metric.toString),
+      Tag.cloud -> Some(settings.cloud.toString),
+      Tag.region -> Some(settings.region.toString)
     )
   }
 }

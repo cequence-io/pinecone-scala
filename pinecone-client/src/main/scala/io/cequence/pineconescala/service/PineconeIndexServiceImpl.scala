@@ -13,7 +13,7 @@ import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
   CreateServerlessIndexSettings
 }
 import io.cequence.pineconescala.domain.settings._
-import io.cequence.pineconescala.domain.{IndexEnv, PodType}
+import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.StandaloneWSRequest
@@ -22,14 +22,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ServerlessIndexServiceImpl(
   apiKey: String,
-  environment: ServerlessEnv,
   explTimeouts: Option[Timeouts] = None
 )(
   override implicit val ec: ExecutionContext,
   override val materializer: Materializer
 ) extends PineconeIndexServiceFactory.Serverless(
       apiKey,
-      environment,
+      None,
       explTimeouts
     )(ec, materializer) {
 
@@ -57,10 +56,32 @@ class ServerlessIndexServiceImpl(
   override def createIndex(
     name: String,
     dimension: Int,
+    metric: Metric.Value,
     settings: CreateServerlessIndexSettings
-  ): Future[CreateResponse] = ???
+  ): Future[CreateResponse] = {
+    execPOSTWithStatus(
+      indexesEndpoint,
+      bodyParams = jsonBodyParams(
+        Tag.fromCreateServerlessIndexSettings(name, dimension, metric, settings): _*
+      ),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
+
+      statusCode match {
+        case 201 => CreateResponse.Created
+        case 400 =>
+          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid index name.
+        case 409 => CreateResponse.AlreadyExists
+        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      }
+    }
+  }
 
   override def describeIndexResponse(json: JsValue): IndexInfo =
+    json.asSafe[ServerlessIndexInfo]
+
+  def describeIndexServerless(json: JsValue): ServerlessIndexInfo =
     json.asSafe[ServerlessIndexInfo]
 }
 
@@ -73,7 +94,7 @@ class PodPineconeIndexServiceImpl(
   override val materializer: Materializer
 ) extends PineconeIndexServiceFactory.Pod(
       apiKey,
-      environment,
+      Some(environment),
       explTimeouts
     )(ec, materializer) {
 
@@ -99,12 +120,14 @@ class PodPineconeIndexServiceImpl(
   override def createIndex(
     name: String,
     dimension: Int,
+    metric: Metric.Value,
     settings: CreatePodBasedIndexSettings
   ): Future[CreateResponse] = {
     execPOSTWithStatus(
       indexesEndpoint,
-      bodyParams =
-        jsonBodyParams(Tag.fromCreatePodBasedIndexSettings(name, dimension, settings): _*),
+      bodyParams = jsonBodyParams(
+        Tag.fromCreatePodBasedIndexSettings(name, dimension, metric, settings): _*
+      ),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
       val (statusCode, message) = statusCodeAndMessage(response)
@@ -134,18 +157,21 @@ class PodPineconeIndexServiceImpl(
  * @since Apr
  *   2023
  */
-abstract class PineconeIndexServiceImpl[S <: IndexSettingsType, E <: IndexEnv](
+abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
   apiKey: String,
-  environment: E,
+  environment: Option[PodEnv],
   explTimeouts: Option[Timeouts] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
-) extends PineconeIndexService[S, E]
+) extends PineconeIndexService[S]
     with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
+
+  def isPodBasedIndex: Boolean = environment.isDefined
+  def isServerlessIndex: Boolean = !isPodBasedIndex
 
   override protected def timeouts: Timeouts =
     explTimeouts.getOrElse(
@@ -318,6 +344,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType, E <: IndexEnv](
   override def createIndex(
     name: String,
     dimension: Int,
+    metric: Metric.Value,
     settings: S
   ): Future[CreateResponse]
   // =
@@ -325,8 +352,8 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType, E <: IndexEnv](
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
-  type Pod = PineconeIndexServiceImpl[CreatePodBasedIndexSettings, PodEnv]
-  type Serverless = PineconeIndexServiceImpl[CreateServerlessIndexSettings, ServerlessEnv]
+  type Pod = PineconeIndexServiceImpl[CreatePodBasedIndexSettings]
+  type Serverless = PineconeIndexServiceImpl[CreateServerlessIndexSettings]
 
   def apply(
     apiKey: String,
@@ -340,13 +367,12 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply(
     apiKey: String,
-    environment: ServerlessEnv,
     timeouts: Option[Timeouts]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
   ): PineconeIndexServiceFactory.Serverless =
-    new ServerlessIndexServiceImpl(apiKey, environment, timeouts)
+    new ServerlessIndexServiceImpl(apiKey, timeouts)
 
   def apply(
   )(
@@ -365,40 +391,24 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
     apply(
       apiKey = config.getString(s"$configPrefix.apiKey"),
-      environment = loadEnv(config),
+      environment = loadPodEnv(config),
       timeouts = timeouts.toOption
     )
   }
 
   def apply(
     apiKey: String,
-    environment: Either[PodEnv, ServerlessEnv],
+    environment: Option[PodEnv],
     timeouts: Option[Timeouts]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
   ): Either[Pod, Serverless] =
     environment match {
-      case Left(podEnv) =>
+      case Some(podEnv) =>
         Left(new PodPineconeIndexServiceImpl(apiKey, podEnv, timeouts))
-      case Right(serverlessEnv) =>
-        Right(new ServerlessIndexServiceImpl(apiKey, serverlessEnv, timeouts))
+      case None =>
+        Right(new ServerlessIndexServiceImpl(apiKey, timeouts))
     }
-
-  def loadEnv(config: Config): Either[PodEnv, ServerlessEnv] =
-    config
-      .optionalString(s"$configPrefix.environment")
-      .fold(
-        Right(
-          ServerlessEnv(
-            CloudProvider
-              .fromString(config.getString(s"$configPrefix.cloud"))
-              .getOrElse(throw new IllegalArgumentException("Invalid cloud provider")),
-            Region
-              .fromString(config.getString(s"$configPrefix.region"))
-              .getOrElse(throw new IllegalArgumentException("Invalid region"))
-          )
-        ): Either[PodEnv, ServerlessEnv]
-      )(env => Left(PodEnv(env)))
 
 }
