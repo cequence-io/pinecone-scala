@@ -99,7 +99,7 @@ class PodPineconeIndexServiceImpl(
     )(ec, materializer) {
 
   override protected val coreUrl =
-    s"https://controller.$environment.pinecone.io/"
+    s"https://controller.${environment.environment}.pinecone.io/"
 
   /**
    * This operation creates a Pinecone index. You can use it to specify the measure of
@@ -182,8 +182,11 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
     )
 
   override def listCollections: Future[Seq[String]] =
-    execGET(EndPoint.collections).map(
-      _.asSafe[Seq[String]]
+    execGET(EndPoint.collections).map(response =>
+      (response \ "collections")
+        .asOpt[Seq[JsValue]]
+        .map(x => x.map(_ \ "name").map(_.as[String]))
+        .getOrElse(response.asSafe[Seq[String]])
     )
 
   override def createCollection(
@@ -198,6 +201,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
       ),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
+      println(s"response = $response")
       val (statusCode, message) = statusCodeAndMessage(response)
 
       statusCode match {
@@ -240,10 +244,11 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
 
   override def listIndexes: Future[Seq[String]] =
     execGET(indexesEndpoint).map(response =>
-      (response \ "indexes").toOption
-        .map(
-          _.asSafe[Seq[JsObject]].map(_.toString()) // TODO
-        )
+      (response \ "indexes")
+        .asOpt[Seq[JsValue]]
+        .map(indexes => {
+          indexes.flatMap(index => (index \ "name").asOpt[String])
+        })
         .getOrElse(
           response.asSafe[Seq[String]]
         )

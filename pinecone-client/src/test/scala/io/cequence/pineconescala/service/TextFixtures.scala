@@ -7,7 +7,6 @@ import scala.util.Random
 trait TextFixtures {
 
   val dimensions = 1536
-  val indexName = "openai-embeddings-1536"
   val namespace = "pinecone-test"
   val testIds = Seq("666", "667")
 
