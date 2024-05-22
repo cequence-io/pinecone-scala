@@ -53,6 +53,8 @@ object Tag {
   case object prefix extends Tag
   case object cloud extends Tag
   case object region extends Tag
+  case object spec extends Tag
+  case object shards extends Tag
 
   def fromCreatePodBasedIndexSettings(
     name: String,
@@ -64,12 +66,19 @@ object Tag {
       Tag.name -> Some(name),
       Tag.dimension -> Some(dimension),
       Tag.metric -> Some(metric.toString),
-      Tag.pods -> Some(settings.pods),
-      Tag.replicas -> Some(settings.replicas),
-      Tag.pod_type -> Some(settings.podType.toString),
-      Tag.metadata_config ->
-        (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
-      Tag.source_collection -> settings.sourceCollection
+      Tag.spec -> Some(
+        Map(
+          "pod" -> Map(
+            Tag.pods.toString -> Some(settings.pods),
+            Tag.replicas.toString -> Some(settings.replicas),
+            Tag.pod_type.toString -> Some(settings.podType.toString),
+            Tag.shards.toString -> Some(settings.shards),
+            Tag.metadata_config.toString ->
+              (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
+            Tag.source_collection.toString -> settings.sourceCollection
+          )
+        )
+      )
     )
   }
 
@@ -83,8 +92,14 @@ object Tag {
       Tag.name -> Some(name),
       Tag.dimension -> Some(dimension),
       Tag.metric -> Some(metric.toString),
-      Tag.cloud -> Some(settings.cloud.toString),
-      Tag.region -> Some(settings.region.toString)
+      Tag.spec -> Some(
+        Map(
+          "serverless" -> Map(
+            Tag.cloud.toString -> settings.cloud.toString,
+            Tag.region.toString -> settings.region.toString
+          )
+        )
+      )
     )
   }
 }

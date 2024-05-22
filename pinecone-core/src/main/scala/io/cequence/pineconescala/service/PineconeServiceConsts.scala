@@ -1,4 +1,4 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.settings.IndexSettingsType.CreatePodBasedIndexSettings
 import io.cequence.pineconescala.domain.{Metric, PodType}
@@ -26,7 +26,6 @@ trait PineconeServiceConsts {
     )
 
     val CreateIndex = CreatePodBasedIndexSettings(
-      metric = Metric.cosine,
       pods = 1,
       replicas = 1,
       podType = PodType.p1_x1,

@@ -61,9 +61,15 @@ class ServerlessIndexServiceImpl(
   ): Future[CreateResponse] = {
     execPOSTWithStatus(
       indexesEndpoint,
-      bodyParams = jsonBodyParams(
-        Tag.fromCreateServerlessIndexSettings(name, dimension, metric, settings): _*
-      ),
+      bodyParams = {
+        val params = jsonBodyParams(
+          Tag.fromCreateServerlessIndexSettings(name, dimension, metric, settings): _*
+        )
+
+        println(s"params = $params")
+
+        params
+      },
       acceptableStatusCodes = Nil // don't parse response at all
     ).map { response =>
       val (statusCode, message) = statusCodeAndMessage(response)
