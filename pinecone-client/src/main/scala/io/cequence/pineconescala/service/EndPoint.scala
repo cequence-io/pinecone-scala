@@ -1,8 +1,12 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.EnumValue
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+  CreatePodBasedIndexSettings,
+  CreateServerlessIndexSettings
+}
+import io.cequence.pineconescala.domain.{EnumValue, Metric, NamedEnumValue}
 
-sealed abstract class EndPoint(value: String = "") extends EnumValue(value)
+sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
 object EndPoint {
   case object describe_index_stats extends EndPoint
@@ -17,7 +21,7 @@ object EndPoint {
   case object indexes extends EndPoint
 }
 
-sealed abstract class Tag(value: String = "") extends EnumValue(value)
+sealed abstract class Tag(value: String = "") extends NamedEnumValue(value)
 
 object Tag {
   case object filter extends Tag
@@ -47,4 +51,55 @@ object Tag {
   case object limit extends Tag
   case object paginationToken extends Tag
   case object prefix extends Tag
+  case object cloud extends Tag
+  case object region extends Tag
+  case object spec extends Tag
+  case object shards extends Tag
+
+  def fromCreatePodBasedIndexSettings(
+    name: String,
+    dimension: Int,
+    metric: Metric.Value,
+    settings: CreatePodBasedIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(metric.toString),
+      Tag.spec -> Some(
+        Map(
+          "pod" -> Map(
+            Tag.pods.toString -> Some(settings.pods),
+            Tag.replicas.toString -> Some(settings.replicas),
+            Tag.pod_type.toString -> Some(settings.podType.toString),
+            Tag.shards.toString -> Some(settings.shards),
+            Tag.metadata_config.toString ->
+              (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
+            Tag.source_collection.toString -> settings.sourceCollection
+          )
+        )
+      )
+    )
+  }
+
+  def fromCreateServerlessIndexSettings(
+    name: String,
+    dimension: Int,
+    metric: Metric.Value,
+    settings: CreateServerlessIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(metric.toString),
+      Tag.spec -> Some(
+        Map(
+          "serverless" -> Map(
+            Tag.cloud.toString -> settings.cloud.toString,
+            Tag.region.toString -> settings.region.toString
+          )
+        )
+      )
+    )
+  }
 }

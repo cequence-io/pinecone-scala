@@ -1,4 +1,4 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
@@ -7,11 +7,16 @@ import play.api.libs.json.Json
 import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
+import io.cequence.pineconescala.domain.IndexEnv.{PodEnv, ServerlessEnv}
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
-import io.cequence.pineconescala.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.pineconescala.domain.{IndexEnv, PVector, SparseVector}
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.domain.response.IndexStats
-import io.cequence.pineconescala.domain.settings.QuerySettings
+import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+  CreatePodBasedIndexSettings,
+  CreateServerlessIndexSettings
+}
+import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,14 +26,18 @@ import scala.concurrent.{ExecutionContext, Future}
  * @param apiKey
  * @param coreUrl
  * @param explTimeouts
- * @since Apr 2023
+ * @since Apr
+ *   2023
  */
 private class PineconeVectorServiceImpl(
   apiKey: String,
   override val coreUrl: String,
-  explTimeouts: Option[Timeouts] = None)(
-  implicit val ec: ExecutionContext, val materializer: Materializer
-) extends PineconeVectorService with WSRequestHelper {
+  explTimeouts: Option[Timeouts] = None
+)(
+  implicit val ec: ExecutionContext,
+  val materializer: Materializer
+) extends PineconeVectorService
+    with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
@@ -80,7 +89,7 @@ private class PineconeVectorServiceImpl(
         Tag.filter -> (if (settings.filter.nonEmpty) Some(settings.filter) else None),
         Tag.includeValues -> Some(settings.includeValues),
         Tag.includeMetadata -> Some(settings.includeMetadata),
-        Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat)),
+        Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat))
       )
     ).map(
       _.asSafe[QueryResponse]
@@ -90,7 +99,7 @@ private class PineconeVectorServiceImpl(
     namespace: String,
     limit: Option[Int],
     paginationToken: Option[String],
-    prefix: Option[String],
+    prefix: Option[String]
   ): Future[ListVectorIdsResponse] =
     execGET(
       EndPoint.vectors_list,
@@ -186,27 +195,14 @@ private class PineconeVectorServiceImpl(
     ).map(json =>
       (json \ "upsertedCount").toOption match {
         case Some(upsertedCountJson) => upsertedCountJson.asSafe[Int]
-        case None => throw new PineconeScalaClientException(s"Upsert should return 'upsertedCount' but got: ${Json.prettyPrint(json)}.")
+        case None =>
+          throw new PineconeScalaClientException(
+            s"Upsert should return 'upsertedCount' but got: ${Json.prettyPrint(json)}."
+          )
       }
     )
 
-  // aux
-
-  override protected def getWSRequestOptional(
-    endPoint: Option[PEP],
-    endPointParam: Option[String],
-    params: Seq[(PT, Option[Any])] = Nil
-  ) =
-    addHeaders(super.getWSRequestOptional(endPoint, endPointParam, params))
-
-  override protected def getWSRequest(
-    endPoint: Option[PEP],
-    endPointParam: Option[String],
-    params: Seq[(PT, Any)] = Nil
-  ) =
-    addHeaders(super.getWSRequest(endPoint, endPointParam, params))
-
-  private def addHeaders(request: StandaloneWSRequest) = {
+  override def addHeaders(request: StandaloneWSRequest) = {
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }
@@ -215,44 +211,56 @@ private class PineconeVectorServiceImpl(
 object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply(
-    indexName: String)(
-    implicit ec: ExecutionContext, materializer: Materializer
+    indexName: String
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
   ): Future[Option[PineconeVectorService]] =
     apply(indexName, ConfigFactory.load(configFileName))
 
   def apply(
     indexName: String,
-    config: Config)(
-    implicit ec: ExecutionContext, materializer: Materializer
+    config: Config
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
   ): Future[Option[PineconeVectorService]] = {
     val timeouts = loadTimeouts(config)
 
     apply(
       apiKey = config.getString(s"$configPrefix.apiKey"),
       indexName = indexName,
-      timeouts = timeoutsToOption(timeouts),
-      pineconeIndexService = PineconeIndexServiceFactory(config)
+      timeouts = timeouts.toOption,
+      pineconeIndexService = PineconeIndexServiceFactory(config) match {
+        case Left(value)  => value
+        case Right(value) => value
+      }
     )
   }
 
-  def apply(
+  def apply[S <: IndexSettingsType](
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,
-    pineconeIndexService: PineconeIndexService)(
-    implicit ec: ExecutionContext, materializer: Materializer
+    pineconeIndexService: PineconeIndexService[S]
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
   ): Future[Option[PineconeVectorService]] =
-    pineconeIndexService.describeIndex(indexName).map(_.map(indexInfo =>
-      apply(apiKey, s"https://${indexInfo.host}", timeouts)
-    ))
+    pineconeIndexService
+      .describeIndex(indexName)
+      .map(_.map(indexInfo => apply(apiKey, s"https://${indexInfo.host}", timeouts)))
 
   def apply(
     apiKey: String,
     indexHostURL: String,
-    timeouts: Option[Timeouts])(
-    implicit ec: ExecutionContext, materializer: Materializer
+    timeouts: Option[Timeouts]
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
   ): PineconeVectorService = {
-    val indexHostURLWithEndingSlash = if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
+    val indexHostURLWithEndingSlash =
+      if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
     new PineconeVectorServiceImpl(apiKey, indexHostURLWithEndingSlash, timeouts)
   }
 }

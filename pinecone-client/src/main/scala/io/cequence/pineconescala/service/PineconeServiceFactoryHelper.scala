@@ -1,14 +1,15 @@
-package  io.cequence.pineconescala.service
+package io.cequence.pineconescala.service
 
 import com.typesafe.config.Config
-import io.cequence.pineconescala.service.ws.Timeouts
 import io.cequence.pineconescala.ConfigImplicits._
+import io.cequence.pineconescala.domain.IndexEnv.PodEnv
+import io.cequence.wsclient.service.ws.Timeouts
 
 trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
 
   protected def loadTimeouts(
     config: Config
-  ) = {
+  ): Timeouts = {
     def intTimeoutAux(fieldName: String) =
       config.optionalInt(s"$configPrefix.timeouts.${fieldName}Sec").map(_ * 1000)
 
@@ -20,13 +21,7 @@ trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
     )
   }
 
-  protected def timeoutsToOption(timeouts: Timeouts) =
-    if (timeouts.requestTimeout.isDefined
-      || timeouts.readTimeout.isDefined
-      || timeouts.connectTimeout.isDefined
-      || timeouts.pooledConnectionIdleTimeout.isDefined
-    )
-      Some(timeouts)
-    else
-      None
+  def loadPodEnv(config: Config): Option[PodEnv] =
+    config.optionalString(s"$configPrefix.environment").map(PodEnv)
+
 }
