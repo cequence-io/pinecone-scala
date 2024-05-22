@@ -2,6 +2,7 @@ package  io.cequence.pineconescala
 
 import com.typesafe.config.Config
 
+// TODO: move to wsclient-core
 object ConfigImplicits {
   implicit class ConfigExt(config: Config) {
     def optionalString(configPath: String) =

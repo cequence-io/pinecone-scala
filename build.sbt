@@ -28,7 +28,18 @@ ThisBuild / scmInfo := Some(
 )
 
 ThisBuild / developers := List(
-  Developer("bnd", "Peter Banda", "peter.banda@protonmail.com", url("https://peterbanda.net"))
+  Developer(
+    "bnd",
+    "Peter Banda",
+    "peter.banda@protonmail.com",
+    url("https://peterbanda.net")
+  ),
+  Developer(
+    "bbu",
+    "Boris Burdiliak",
+    "boris.burdiliak@gmail.com",
+    url("https://cequence.io")
+  )
 )
 
 ThisBuild / licenses += "MIT" -> url("https://opensource.org/licenses/MIT")

@@ -3,7 +3,6 @@ package io.cequence.pineconescala.service
 import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{IndexSettings, IndexSettingsType}
-
 import scala.concurrent.Future
 
 /**
@@ -21,6 +20,7 @@ import scala.concurrent.Future
  * @since Apr
  *   2023
  */
+// TODO: introduce PineconeServerlessIndexService and PineconePodBasedIndexService (to be returned from PineconeIndexServiceFactory instead of impl classes)
 trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts {
 
   /**

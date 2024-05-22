@@ -4,7 +4,6 @@ import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.ConfigImplicits.ConfigExt
 import io.cequence.pineconescala.JsonFormats._
-import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.IndexEnv.{PodEnv, ServerlessEnv}
 import io.cequence.pineconescala.domain.response._
@@ -15,6 +14,7 @@ import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.JsonUtil.JsonOps
 import play.api.libs.json.{JsObject, JsValue}
 import play.api.libs.ws.StandaloneWSRequest
 
@@ -357,10 +357,12 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
     name: String,
     dimension: Int,
     metric: Metric.Value,
-    settings: S
+    settings: S // TODO: provide default settings in PineconeServerlessIndexService and PineconePodBasedIndexService (new traits to be introduced)
   ): Future[CreateResponse]
   // =
   // createIndex(name, dimension, settings.asInstanceOf[IndexSettings])
+
+  // TODO override handleErrorCodes to throw PineconeScalaClientException
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {

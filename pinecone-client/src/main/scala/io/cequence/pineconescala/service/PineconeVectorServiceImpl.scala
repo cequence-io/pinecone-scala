@@ -4,18 +4,13 @@ import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import play.api.libs.ws.StandaloneWSRequest
 import play.api.libs.json.Json
-import io.cequence.pineconescala.JsonUtil.JsonOps
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.IndexEnv.{PodEnv, ServerlessEnv}
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.{IndexEnv, PVector, SparseVector}
+import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.pineconescala.domain.response.IndexStats
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
-  CreatePodBasedIndexSettings,
-  CreateServerlessIndexSettings
-}
 import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -206,6 +201,8 @@ private class PineconeVectorServiceImpl(
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }
+
+  // TODO override handleErrorCodes to throw PineconeScalaClientException
 }
 
 object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
