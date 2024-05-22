@@ -2,28 +2,29 @@ package io.cequence.pineconescala.service
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
-import io.cequence.pineconescala.domain.response.{FetchResponse, IndexStats, QueryResponse}
+import com.typesafe.config.{Config, ConfigFactory}
+import io.cequence.pineconescala.domain.response.{FetchResponse, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
-import org.scalatest.Pending.isSucceeded.&&
-import org.scalatest.freespec.AsyncFreeSpec
-import org.scalatest.funspec.{AnyFunSpec, AsyncFunSpec}
-import org.scalatest.{Assertion, GivenWhenThen}
-import org.scalatest.matchers.must.Matchers.{contain, not}
+import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatest.{Assertion, GivenWhenThen}
 
-import scala.collection.mutable.Stack
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Random, Success}
+import scala.util.Random
 
-class PineconeVectorServiceImplSpec extends AsyncWordSpec with GivenWhenThen with PodFixtures {
+class ServerlessPineconeVectorServiceImplSpec
+    extends AsyncWordSpec
+    with GivenWhenThen
+    with ServerlessFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
+  val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
+
   def vectorServiceBuilder: Future[PineconeVectorService] =
-    PineconeVectorServiceFactory(indexName).map(
+    PineconeVectorServiceFactory(indexName, serverlessConfig).map(
       _.getOrElse(throw new IllegalArgumentException(s"index '${indexName}' not found"))
     )
 
@@ -45,28 +46,41 @@ class PineconeVectorServiceImplSpec extends AsyncWordSpec with GivenWhenThen wit
       } yield stats.dimension shouldEqual dimensions
     }
 
-    s"describeIndexStats should not contain the namespace 'pinecone-test'" in {
+    s"describeIndexStats should not contain the namespace 'serverless-pinecone-test'" in {
       for {
         service <- vectorServiceBuilder
-        _ <- service.deleteAll(namespace)
+        _ <- service.deleteAll(namespace).recover({ case _ => () })
         stats <- service.describeIndexStats
       } yield stats.namespaces.keys.toSet shouldNot contain(namespace)
     }
 
     "upsert should insert a vector" in withTearingDownStore { service =>
       for {
-        _ <- service.upsert(
+        upserted <- service.upsert(
           vectors = Seq(vector1, vector2),
           namespace = namespace
         )
-        fetchedVector: FetchResponse <- service.fetch(
+        fetchedVector <- service.fetch(
           ids = testIds,
           namespace = namespace
         )
       } yield {
+        upserted shouldEqual 2
         fetchedVector.namespace shouldEqual namespace
         fetchedVector.vectors(testIds.head).id shouldEqual vector1.id
         fetchedVector.vectors(testIds.head).metadata shouldEqual vector1.metadata
+      }
+    }
+
+    "listVectorIDs should return all vector IDs" ignore withTearingDownStore { service =>
+      for {
+        _ <- service.upsert(
+          vectors = Seq(vector1, vector2),
+          namespace = namespace
+        )
+        allVectors <- service.listVectorIDs(namespace)
+      } yield {
+        allVectors.vectors should contain theSameElementsAs testIds
       }
     }
 

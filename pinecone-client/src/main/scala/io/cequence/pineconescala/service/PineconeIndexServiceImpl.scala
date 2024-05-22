@@ -26,7 +26,7 @@ class ServerlessIndexServiceImpl(
 )(
   override implicit val ec: ExecutionContext,
   override val materializer: Materializer
-) extends PineconeIndexServiceFactory.Serverless(
+) extends PineconeIndexServiceImpl[CreateServerlessIndexSettings](
       apiKey,
       None,
       explTimeouts
@@ -92,14 +92,17 @@ class PodPineconeIndexServiceImpl(
 )(
   override implicit val ec: ExecutionContext,
   override val materializer: Materializer
-) extends PineconeIndexServiceFactory.Pod(
+) extends PineconeIndexServiceImpl[CreatePodBasedIndexSettings](
       apiKey,
       Some(environment),
       explTimeouts
-    )(ec, materializer) {
+    )(ec, materializer)
+    with PodIndexService {
 
   override protected val coreUrl =
     s"https://controller.${environment.environment}.pinecone.io/"
+
+  override def indexesEndpoint: EndPoint = EndPoint.databases
 
   /**
    * This operation creates a Pinecone index. You can use it to specify the measure of
@@ -142,10 +145,63 @@ class PodPineconeIndexServiceImpl(
     }
   }
 
-  override def indexesEndpoint = EndPoint.databases
+  override def configureIndex(
+    indexName: String,
+    replicas: Option[Int],
+    podType: Option[PodType.Value]
+  ): Future[ConfigureIndexResponse] =
+    execPATCHWithStatus(
+      indexesEndpoint,
+      endPointParam = Some(indexName),
+      bodyParams = jsonBodyParams(
+        Tag.replicas -> replicas,
+        Tag.pod_type -> podType.map(_.toString)
+      )
+    ).map { response =>
+      val (statusCode, message) = statusCodeAndMessage(response)
+
+      statusCode match {
+        case 202 => ConfigureIndexResponse.Updated
+        case 400 => ConfigureIndexResponse.BadRequestNotEnoughQuota
+        case 404 => ConfigureIndexResponse.NotFound
+        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      }
+    }
 
   override def describeIndexResponse(json: JsValue): IndexInfo =
     json.asSafe[PodBasedIndexInfo]
+
+  override def createCollection(
+    name: String,
+    source: String
+  ): Future[CreateResponse] =
+    execPOSTWithStatus(
+      EndPoint.collections,
+      bodyParams = jsonBodyParams(
+        Tag.name -> Some(name),
+        Tag.source -> Some(source)
+      ),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map { response =>
+      println(s"response = $response")
+      val (statusCode, message) = statusCodeAndMessage(response)
+
+      statusCode match {
+        case 201 => CreateResponse.Created
+        case 400 =>
+          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid collection name.
+        case 409 => CreateResponse.AlreadyExists
+        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      }
+    }
+
+  override def listCollections: Future[Seq[String]] =
+    execGET(EndPoint.collections).map(response => response.asSafe[Seq[String]]
+//      (response \ "collections")
+//        .asOpt[Seq[JsValue]]
+//        .map(x => x.map(_ \ "name").map(_.as[String]))
+//        .getOrElse(response.asSafe[Seq[String]])
+    )
 }
 
 /**
@@ -180,38 +236,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
         readTimeout = Some(defaultReadoutTimeout)
       )
     )
-
-  override def listCollections: Future[Seq[String]] =
-    execGET(EndPoint.collections).map(response =>
-      (response \ "collections")
-        .asOpt[Seq[JsValue]]
-        .map(x => x.map(_ \ "name").map(_.as[String]))
-        .getOrElse(response.asSafe[Seq[String]])
-    )
-
-  override def createCollection(
-    name: String,
-    source: String
-  ): Future[CreateResponse] =
-    execPOSTWithStatus(
-      EndPoint.collections,
-      bodyParams = jsonBodyParams(
-        Tag.name -> Some(name),
-        Tag.source -> Some(source)
-      ),
-      acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      println(s"response = $response")
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 201 => CreateResponse.Created
-        case 400 =>
-          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid collection name.
-        case 409 => CreateResponse.AlreadyExists
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
 
   override def describeCollection(
     collectionName: String
@@ -283,29 +307,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
       }
     }
 
-  override def configureIndex(
-    indexName: String,
-    replicas: Option[Int],
-    podType: Option[PodType.Value]
-  ): Future[ConfigureIndexResponse] =
-    execPATCHWithStatus(
-      indexesEndpoint,
-      endPointParam = Some(indexName),
-      bodyParams = jsonBodyParams(
-        Tag.replicas -> replicas,
-        Tag.pod_type -> podType.map(_.toString)
-      )
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 202 => ConfigureIndexResponse.Updated
-        case 400 => ConfigureIndexResponse.BadRequestNotEnoughQuota
-        case 404 => ConfigureIndexResponse.NotFound
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
-
   // aux
 
   // if environment is specified (pod-based arch) we use databases endpoint,
@@ -357,8 +358,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
-  type Pod = PineconeIndexServiceImpl[CreatePodBasedIndexSettings]
-  type Serverless = PineconeIndexServiceImpl[CreateServerlessIndexSettings]
 
   def apply(
     apiKey: String,
@@ -367,7 +366,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): PineconeIndexServiceFactory.Pod =
+  ): PodPineconeIndexServiceImpl =
     new PodPineconeIndexServiceImpl(apiKey, environment, timeouts)
 
   def apply(
@@ -376,14 +375,14 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): PineconeIndexServiceFactory.Serverless =
+  ): ServerlessIndexServiceImpl =
     new ServerlessIndexServiceImpl(apiKey, timeouts)
 
   def apply(
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): Either[Pod, Serverless] =
+  ): Either[PodPineconeIndexServiceImpl, ServerlessIndexServiceImpl] =
     apply(ConfigFactory.load(configFileName))
 
   def apply(
@@ -391,7 +390,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): Either[Pod, Serverless] = {
+  ): Either[PodPineconeIndexServiceImpl, ServerlessIndexServiceImpl] = {
     val timeouts = loadTimeouts(config)
 
     apply(
@@ -408,7 +407,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): Either[Pod, Serverless] =
+  ): Either[PodPineconeIndexServiceImpl, ServerlessIndexServiceImpl] =
     environment match {
       case Some(podEnv) =>
         Left(new PodPineconeIndexServiceImpl(apiKey, podEnv, timeouts))

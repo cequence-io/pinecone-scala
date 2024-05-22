@@ -2,29 +2,31 @@ package io.cequence.pineconescala.service
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import com.typesafe.config.{Config, ConfigFactory}
-import io.cequence.pineconescala.domain.response.{FetchResponse, QueryResponse}
+import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.domain.response.{FetchResponse, IndexStats, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
-import org.scalatest.matchers.must.Matchers.contain
+import org.scalatest.Pending.isSucceeded.&&
+import org.scalatest.freespec.AsyncFreeSpec
+import org.scalatest.funspec.{AnyFunSpec, AsyncFunSpec}
+import org.scalatest.{Assertion, GivenWhenThen}
+import org.scalatest.matchers.must.Matchers.{contain, not}
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AsyncWordSpec
-import org.scalatest.{Assertion, GivenWhenThen}
 
+import scala.collection.mutable.Stack
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 
-class PineconeServerlessVectorServiceImplSpec
+class PodPineconeVectorServiceImplSpec
     extends AsyncWordSpec
     with GivenWhenThen
-    with ServerlessFixtures {
+    with PodFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
-  val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
-
   def vectorServiceBuilder: Future[PineconeVectorService] =
-    PineconeVectorServiceFactory(indexName, serverlessConfig).map(
+    PineconeVectorServiceFactory(indexName).map(
       _.getOrElse(throw new IllegalArgumentException(s"index '${indexName}' not found"))
     )
 
@@ -68,6 +70,18 @@ class PineconeServerlessVectorServiceImplSpec
         fetchedVector.namespace shouldEqual namespace
         fetchedVector.vectors(testIds.head).id shouldEqual vector1.id
         fetchedVector.vectors(testIds.head).metadata shouldEqual vector1.metadata
+      }
+    }
+
+    "listVectorIDs should return all vector IDs" ignore withTearingDownStore { service =>
+      for {
+        _ <- service.upsert(
+          vectors = Seq(vector1, vector2),
+          namespace = namespace
+        )
+        allVectors <- service.listVectorIDs(namespace)
+      } yield {
+        allVectors.vectors should contain theSameElementsAs testIds
       }
     }
 
