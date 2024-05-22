@@ -28,11 +28,10 @@ class ServerlessPineconeVectorServiceImplSpec
       _.getOrElse(throw new IllegalArgumentException(s"index '${indexName}' not found"))
     )
 
-  def withTearingDownStore(testFun: PineconeVectorService => Future[Assertion])
+  def withVectorStore(testFun: PineconeVectorService => Future[Assertion])
     : Future[Assertion] = {
     vectorServiceBuilder.flatMap { vectorService =>
       val result = testFun(vectorService)
-      vectorService.deleteAll(namespace)
       result
     }
   }
@@ -54,12 +53,13 @@ class ServerlessPineconeVectorServiceImplSpec
       } yield stats.namespaces.keys.toSet shouldNot contain(namespace)
     }
 
-    "upsert should insert a vector" in withTearingDownStore { service =>
+    "upsert should insert a vector" in withVectorStore { service =>
       for {
         upserted <- service.upsert(
           vectors = Seq(vector1, vector2),
           namespace = namespace
         )
+        _ = Thread.sleep(1000)
         fetchedVector <- service.fetch(
           ids = testIds,
           namespace = namespace
@@ -67,12 +67,14 @@ class ServerlessPineconeVectorServiceImplSpec
       } yield {
         upserted shouldEqual 2
         fetchedVector.namespace shouldEqual namespace
-        fetchedVector.vectors(testIds.head).id shouldEqual vector1.id
-        fetchedVector.vectors(testIds.head).metadata shouldEqual vector1.metadata
+        fetchedVector.vectors(vector1.id).id shouldEqual vector1.id
+        fetchedVector.vectors(vector1.id).metadata shouldEqual vector1.metadata
+        fetchedVector.vectors(vector2.id).id shouldEqual vector2.id
+        fetchedVector.vectors(vector2.id).metadata shouldEqual vector2.metadata
       }
     }
 
-    "listVectorIDs should return all vector IDs" ignore withTearingDownStore { service =>
+    "listVectorIDs should return all vector IDs" ignore withVectorStore { service =>
       for {
         _ <- service.upsert(
           vectors = Seq(vector1, vector2),
@@ -84,36 +86,38 @@ class ServerlessPineconeVectorServiceImplSpec
       }
     }
 
-    "query should return k vectors with the highest similarity" in withTearingDownStore {
-      service =>
-        for {
-          _ <- service.upsert(
-            vectors = Seq(vector1, vector2),
-            namespace = namespace
+    "query should return k vectors with the highest similarity" in withVectorStore { service =>
+      for {
+        upserted <- service.upsert(
+          vectors = Seq(vector1, vector2),
+          namespace = namespace
+        )
+        _ = Thread.sleep(10)
+        queryResponse: QueryResponse <- service.query(
+          vector = vector1.values,
+          namespace = namespace,
+          settings = QuerySettings(
+            topK = 2,
+            includeValues = true,
+            includeMetadata = true
           )
-          queryResponse: QueryResponse <- service.query(
-            vector = vector1.values,
-            namespace = namespace,
-            settings = QuerySettings(
-              topK = 2,
-              includeValues = true,
-              includeMetadata = true
-            )
-          )
-        } yield {
-          queryResponse.matches.size shouldEqual 2
-          queryResponse.matches.head.id shouldEqual vector1.id
-          queryResponse.matches(1).id shouldEqual vector2.id
-        }
+        )
+      } yield {
+        upserted shouldEqual 2
+        queryResponse.matches.size shouldEqual 2
+        queryResponse.matches.head.id shouldEqual vector1.id
+        queryResponse.matches(1).id shouldEqual vector2.id
+      }
     }
 
-    "queryById should return k vectors with the highest similarity" in withTearingDownStore {
+    "queryById should return k vectors with the highest similarity" in withVectorStore {
       service =>
         for {
-          _ <- service.upsert(
+          upserted <- service.upsert(
             vectors = Seq(vector1, vector2),
             namespace = namespace
           )
+          _ = Thread.sleep(10)
           queryResponse: QueryResponse <- service.queryById(
             id = vector2.id,
             namespace = namespace,
@@ -124,13 +128,14 @@ class ServerlessPineconeVectorServiceImplSpec
             )
           )
         } yield {
+          upserted shouldEqual 2
           queryResponse.matches.size shouldEqual 2
           queryResponse.matches.head.id shouldEqual vector2.id
           queryResponse.matches(1).id shouldEqual vector1.id
         }
     }
 
-    "update should update a vector" in withTearingDownStore { service =>
+    "update should update a vector" in withVectorStore { service =>
       for {
         _ <- service.upsert(
           vectors = Seq(vector1, vector2),
@@ -154,16 +159,18 @@ class ServerlessPineconeVectorServiceImplSpec
       }
     }
 
-    "delete should remove a vector" in withTearingDownStore { service =>
+    "delete should remove a vector" in withVectorStore { service =>
       for {
         _ <- service.upsert(
           vectors = Seq(vector1, vector2),
           namespace = namespace
         )
+        _ = Thread.sleep(1000)
         _ <- service.delete(
           ids = Seq(vector1.id),
           namespace = namespace
         )
+        _ = Thread.sleep(1000)
         fetchedVector: FetchResponse <- service.fetch(
           ids = testIds,
           namespace = namespace
