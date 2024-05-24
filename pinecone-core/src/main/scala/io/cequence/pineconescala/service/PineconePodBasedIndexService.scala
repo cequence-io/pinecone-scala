@@ -21,6 +21,6 @@ trait PineconePodBasedIndexService
     CreatePodBasedIndexSettings(
       pods = 1,
       replicas = 1,
-      podType = PodType.`s1.x1`
+      podType = PodType.s1_x1
     )
 }

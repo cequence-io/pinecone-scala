@@ -24,7 +24,7 @@ trait PineconeServiceConsts {
     val CreateIndex = CreatePodBasedIndexSettings(
       pods = 1,
       replicas = 1,
-      podType = PodType.`p1.x1`,
+      podType = PodType.p1_x1,
       metadataConfig = Map(),
       sourceCollection = None
     )

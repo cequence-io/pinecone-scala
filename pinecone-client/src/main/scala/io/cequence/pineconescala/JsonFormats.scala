@@ -36,18 +36,18 @@ object JsonFormats {
   implicit val podTypeFormat: Format[PodType] = {
     import PodType._
     enumFormat[PodType](
-      `s1.x1`,
-      `s1.x2`,
-      `s1.x4`,
-      `s1.x8`,
-      `p1.x1`,
-      `p1.x2`,
-      `p1.x4`,
-      `p1.x8`,
-      `p2.x1`,
-      `p2.x2`,
-      `p2.x4`,
-      `p2.x8`
+      s1_x1,
+      s1_x2,
+      s1_x4,
+      s1_x8,
+      p1_x1,
+      p1_x2,
+      p1_x4,
+      p1_x8,
+      p2_x1,
+      p2_x2,
+      p2_x4,
+      p2_x8
     )
   }
   implicit val metricFormat: Format[Metric] = {

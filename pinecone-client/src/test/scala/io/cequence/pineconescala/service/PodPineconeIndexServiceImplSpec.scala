@@ -81,7 +81,7 @@ class PodPineconeIndexServiceImplSpec
           CreatePodBasedIndexSettings(
             pods = 2,
             replicas = 2,
-            podType = PodType.`p1.x1`,
+            podType = PodType.p1_x1,
             shards = 2,
             metadataConfig = Map("metadata1" -> "string", "metadata2" -> "int"),
             sourceCollection = Some("openai-embeddings-1536")
