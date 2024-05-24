@@ -5,7 +5,7 @@ import io.cequence.pineconescala.domain.{Metric, PodType}
 case class IndexSettings(
   // The distance metric to be used for similarity search.
   // You can use 'euclidean', 'cosine', or 'dotproduct'.
-  metric: Metric.Value,
+  metric: Metric,
   settings: IndexSettingsType
 )
 
@@ -20,7 +20,7 @@ object IndexSettingsType {
     replicas: Int,
 
     // The type of pod to use. One of s1, p1, or p2 appended with . and one of x1, x2, x4, or x8.
-    podType: PodType.Value,
+    podType: PodType,
 
     // The number of shards. Shards split your data across multiple pods so you can fit more data into an index.
     shards: Int = 1,

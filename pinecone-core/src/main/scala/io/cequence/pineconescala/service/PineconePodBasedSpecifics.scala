@@ -5,7 +5,7 @@ import io.cequence.pineconescala.domain.response.{ConfigureIndexResponse, Create
 
 import scala.concurrent.Future
 
-trait PodIndexService {
+trait PineconePodBasedSpecifics {
 
   /**
    * This operation returns a list of your Pinecone collections.
@@ -51,7 +51,7 @@ trait PodIndexService {
   def configureIndex(
     indexName: String,
     replicas: Option[Int],
-    podType: Option[PodType.Value]
+    podType: Option[PodType]
   ): Future[ConfigureIndexResponse]
 
 }

@@ -1,10 +1,11 @@
 package io.cequence.pineconescala.service
 
+import io.cequence.pineconescala.domain.Metric
 import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
   CreatePodBasedIndexSettings,
   CreateServerlessIndexSettings
 }
-import io.cequence.pineconescala.domain.{EnumValue, Metric, NamedEnumValue}
+import io.cequence.wsclient.domain.NamedEnumValue
 
 sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
@@ -59,7 +60,7 @@ object Tag {
   def fromCreatePodBasedIndexSettings(
     name: String,
     dimension: Int,
-    metric: Metric.Value,
+    metric: Metric,
     settings: CreatePodBasedIndexSettings
   ): Seq[(Tag, Option[Any])] = {
     Seq(
@@ -85,7 +86,7 @@ object Tag {
   def fromCreateServerlessIndexSettings(
     name: String,
     dimension: Int,
-    metric: Metric.Value,
+    metric: Metric,
     settings: CreateServerlessIndexSettings
   ): Seq[(Tag, Option[Any])] = {
     Seq(

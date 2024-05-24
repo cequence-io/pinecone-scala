@@ -1,6 +1,8 @@
 package io.cequence.pineconescala.domain.response
 
-import io.cequence.pineconescala.domain.{Metric, PodType}
+import io.cequence.pineconescala.domain
+import io.cequence.pineconescala.domain.Metric
+import io.cequence.wsclient.domain.EnumValue
 
 case class PodBasedIndexInfo(
   database: PodBasedIndexDatabaseInfo,
@@ -22,12 +24,12 @@ case class PodBasedIndexInfo(
 
 case class PodBasedIndexDatabaseInfo(
   name: String,
-  metric: Metric.Value,
+  metric: Metric,
   dimension: Int,
   pods: Int,
   replicas: Int,
   shards: Int,
-  pod_type: Option[PodType.Value] // undefined for indexes running on "free" envs
+  pod_type: Option[domain.PodType] // undefined for indexes running on "free" envs
 )
 
 case class PodBasedIndexStatusInfo(
@@ -35,7 +37,7 @@ case class PodBasedIndexStatusInfo(
   crashed: Seq[String],
   host: String,
   port: Int,
-  state: IndexStatus.Value,
+  state: IndexStatus,
   ready: Boolean
 )
 
@@ -45,7 +47,13 @@ case class PodBasedIndexConfig(
   hybrid: Int
 )
 
-// TODO: turn this into a sealed trait
-object IndexStatus extends Enumeration {
-  val Initializing, ScalingUp, ScalingDown, Terminating, Ready, InitializationFailed = Value
+sealed trait IndexStatus extends EnumValue
+
+object IndexStatus {
+  case object Initializing extends IndexStatus
+  case object ScalingUp extends IndexStatus
+  case object ScalingDown extends IndexStatus
+  case object Terminating extends IndexStatus
+  case object Ready extends IndexStatus
+  case object InitializationFailed extends IndexStatus
 }

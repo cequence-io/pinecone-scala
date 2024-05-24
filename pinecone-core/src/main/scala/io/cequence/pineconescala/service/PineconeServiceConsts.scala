@@ -9,10 +9,6 @@ import io.cequence.pineconescala.domain.settings._
  */
 trait PineconeServiceConsts {
 
-  protected val defaultRequestTimeout = 120 * 1000 // two minute
-
-  protected val defaultReadoutTimeout = 120 * 1000 // two minute
-
   protected val configPrefix = "pinecone-scala-client"
 
   protected val configFileName = "pinecone-scala-client.conf"
@@ -28,7 +24,7 @@ trait PineconeServiceConsts {
     val CreateIndex = CreatePodBasedIndexSettings(
       pods = 1,
       replicas = 1,
-      podType = PodType.p1_x1,
+      podType = PodType.`p1.x1`,
       metadataConfig = Map(),
       sourceCollection = None
     )

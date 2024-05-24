@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import com.typesafe.config.Config
-import io.cequence.pineconescala.ConfigImplicits._
+import io.cequence.wsclient.ConfigImplicits._
 import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.wsclient.service.ws.Timeouts
 

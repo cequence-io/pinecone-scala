@@ -23,7 +23,7 @@ class ServerlessPineconeIndexServiceImplSpec
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 
-  def pineconeIndexService: ServerlessIndexServiceImpl =
+  def pineconeIndexService: PineconeServerlessIndexService =
     PineconeIndexServiceFactory(serverlessConfig).right.get
 
   "Pinecone Index Service" when {
