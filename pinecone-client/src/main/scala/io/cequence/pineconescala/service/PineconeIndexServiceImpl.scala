@@ -2,20 +2,19 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
-import io.cequence.wsclient.ConfigImplicits.ConfigExt
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.IndexEnv.{PodEnv, ServerlessEnv}
+import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
   CreatePodBasedIndexSettings,
   CreateServerlessIndexSettings
 }
 import io.cequence.pineconescala.domain.settings._
-import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestExtHelper, WSRequestHelper}
+import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.wsclient.JsonUtil.JsonOps
-import play.api.libs.json.{JsObject, JsValue}
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import play.api.libs.json.JsValue
 import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -229,7 +228,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
   implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends PineconeIndexService[S]
-    with WSRequestExtHelper {
+    with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
