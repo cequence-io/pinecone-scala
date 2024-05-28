@@ -2,16 +2,15 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
-import play.api.libs.ws.StandaloneWSRequest
-import play.api.libs.json.Json
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.{PVector, SparseVector}
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
-import io.cequence.wsclient.JsonUtil.JsonOps
-import io.cequence.pineconescala.domain.response.IndexStats
 import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
+import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.wsclient.JsonUtil.JsonOps
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import play.api.libs.json.Json
+import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 private class PineconeVectorServiceImpl(
   apiKey: String,
   override val coreUrl: String,
-  explTimeouts: Option[Timeouts] = None
+  explicitTimeouts: Option[Timeouts] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -37,13 +36,7 @@ private class PineconeVectorServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected def timeouts: Timeouts =
-    explTimeouts.getOrElse(
-      Timeouts(
-        requestTimeout = Some(defaultRequestTimeout),
-        readTimeout = Some(defaultReadoutTimeout)
-      )
-    )
+  override protected val explTimeouts: Option[Timeouts] = explicitTimeouts
 
   override def describeIndexStats: Future[IndexStats] =
     execGET(EndPoint.describe_index_stats).map(
@@ -202,7 +195,11 @@ private class PineconeVectorServiceImpl(
     request.addHttpHeaders(apiKeyHeader)
   }
 
-  // TODO override handleErrorCodes to throw PineconeScalaClientException
+  override protected def handleErrorCodes(
+    httpCode: Int,
+    message: String
+  ): Nothing =
+    throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
 }
 
 object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {

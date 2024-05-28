@@ -23,7 +23,7 @@ class ServerlessPineconeIndexServiceImplSpec
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 
-  def pineconeIndexService: ServerlessIndexServiceImpl =
+  def pineconeIndexService: PineconeServerlessIndexService =
     PineconeIndexServiceFactory(serverlessConfig).right.get
 
   "Pinecone Index Service" when {
@@ -58,7 +58,7 @@ class ServerlessPineconeIndexServiceImplSpec
         )
         indexes <- pineconeIndexService.listIndexes
         _ <- pineconeIndexService.deleteIndex(newIndexName)
-        _ = Thread.sleep(1000)
+        _ = Thread.sleep(5000)
         indexesAfterDeletion <- pineconeIndexService.listIndexes
       } yield {
         indexes should contain(newIndexName)

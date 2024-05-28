@@ -4,7 +4,7 @@ import io.cequence.pineconescala.domain.Metric
 
 case class ServerlessIndexInfo(
   name: String,
-  metric: Metric.Value,
+  metric: Metric,
   dimension: Int,
   status: ServerlessIndexStatus,
   host: String,
@@ -15,7 +15,7 @@ case class ServerlessIndexInfo(
 
 case class ServerlessIndexStatus(
   ready: Boolean,
-  state: IndexStatus.Value
+  state: IndexStatus
 )
 
 case class ServerlessIndexSpecAux(

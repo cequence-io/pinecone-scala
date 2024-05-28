@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.domain.settings
 
-import io.cequence.pineconescala.domain.NamedEnumValue
+import io.cequence.wsclient.domain.NamedEnumValue
 
 sealed abstract class CloudProvider(name: String) extends NamedEnumValue(name)
 object CloudProvider {

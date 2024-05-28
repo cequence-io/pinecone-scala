@@ -35,9 +35,9 @@ ThisBuild / developers := List(
     url("https://peterbanda.net")
   ),
   Developer(
-    "bbu",
+    "bburdiliak",
     "Boris Burdiliak",
-    "boris.burdiliak@gmail.com",
+    "boris.burdiliak@cequence.io",
     url("https://cequence.io")
   )
 )

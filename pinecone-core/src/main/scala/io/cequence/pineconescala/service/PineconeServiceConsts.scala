@@ -9,10 +9,6 @@ import io.cequence.pineconescala.domain.settings._
  */
 trait PineconeServiceConsts {
 
-  protected val defaultRequestTimeout = 120 * 1000 // two minute
-
-  protected val defaultReadoutTimeout = 120 * 1000 // two minute
-
   protected val configPrefix = "pinecone-scala-client"
 
   protected val configFileName = "pinecone-scala-client.conf"

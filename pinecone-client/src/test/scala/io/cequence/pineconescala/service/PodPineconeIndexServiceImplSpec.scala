@@ -24,7 +24,7 @@ class PodPineconeIndexServiceImplSpec
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
-  def pineconeIndexService: PodPineconeIndexServiceImpl =
+  def pineconeIndexService: PineconePodBasedIndexService =
     PineconeIndexServiceFactory().left.get
 
   "Pinecone Index Service" when {

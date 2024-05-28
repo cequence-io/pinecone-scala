@@ -1,18 +1,22 @@
 package io.cequence.pineconescala.domain
 
-object PodType extends Enumeration {
-  val s1_x1 = Value("s1.x1")
-  val s1_x2 = Value("s1.x2")
-  val s1_x4 = Value("s1.x4")
-  val s1_x8 = Value("s1.x8")
+import io.cequence.wsclient.domain.NamedEnumValue
 
-  val p1_x1 = Value("p1.x1")
-  val p1_x2 = Value("p1.x2")
-  val p1_x4 = Value("p1.x4")
-  val p1_x8 = Value("p1.x8")
+sealed abstract class PodType(name: String) extends NamedEnumValue(name)
 
-  val p2_x1 = Value("p2.x1")
-  val p2_x2 = Value("p2.x2")
-  val p2_x4 = Value("p2.x4")
-  val p2_x8 = Value("p2.x8")
+object PodType {
+  case object s1_x1 extends PodType("s1.x1")
+  case object s1_x2 extends PodType("s1.x2")
+  case object s1_x4 extends PodType("s1.x4")
+  case object s1_x8 extends PodType("s1.x8")
+
+  case object p1_x1 extends PodType("p1.x1")
+  case object p1_x2 extends PodType("p1.x2")
+  case object p1_x4 extends PodType("p1.x4")
+  case object p1_x8 extends PodType("p1.x8")
+
+  case object p2_x1 extends PodType("p2.x1")
+  case object p2_x2 extends PodType("p2.x2")
+  case object p2_x4 extends PodType("p2.x4")
+  case object p2_x8 extends PodType("p2.x8")
 }

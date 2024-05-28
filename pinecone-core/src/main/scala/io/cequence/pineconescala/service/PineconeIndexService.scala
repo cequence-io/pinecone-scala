@@ -20,7 +20,6 @@ import scala.concurrent.Future
  * @since Apr
  *   2023
  */
-// TODO: introduce PineconeServerlessIndexService and PineconePodBasedIndexService (to be returned from PineconeIndexServiceFactory instead of impl classes)
 trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts {
 
   /**
@@ -80,7 +79,7 @@ trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts
   def createIndex(
     name: String,
     dimension: Int,
-    metric: Metric.Value,
+    metric: Metric,
     settings: S // CreatePodBasedIndexSettings = DefaultSettings.CreateIndex
   ): Future[CreateResponse]
 
