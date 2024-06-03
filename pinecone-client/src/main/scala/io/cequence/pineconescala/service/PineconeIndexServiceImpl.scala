@@ -13,6 +13,7 @@ import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.wsclient.JsonUtil.JsonOps
+import io.cequence.wsclient.domain.WsRequestContext
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.JsValue
 import play.api.libs.ws.StandaloneWSRequest
@@ -236,7 +237,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
   override val defaultRequestTimeout = 120 * 1000 // two minutes
   override val defaultReadoutTimeout = 120 * 1000 // two minutes
 
-  override protected val explTimeouts: Option[Timeouts] = explicitTimeouts
+  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
 
   def isPodBasedIndex: Boolean = environment.isDefined
   def isServerlessIndex: Boolean = !isPodBasedIndex

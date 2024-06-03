@@ -8,6 +8,7 @@ import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.wsclient.JsonUtil.JsonOps
+import io.cequence.wsclient.domain.WsRequestContext
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.Json
 import play.api.libs.ws.StandaloneWSRequest
@@ -36,7 +37,7 @@ private class PineconeVectorServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected val explTimeouts: Option[Timeouts] = explicitTimeouts
+  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
 
   override def describeIndexStats: Future[IndexStats] =
     execGET(EndPoint.describe_index_stats).map(

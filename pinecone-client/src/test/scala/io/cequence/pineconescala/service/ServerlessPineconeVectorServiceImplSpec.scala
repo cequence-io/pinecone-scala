@@ -59,7 +59,9 @@ class ServerlessPineconeVectorServiceImplSpec
           vectors = Seq(vector1, vector2),
           namespace = namespace
         )
-        _ = Thread.sleep(3000)
+        _ = Thread.sleep(1000)
+        _ = Thread.sleep(1000)
+        _ = Thread.sleep(1000)
         fetchedVector <- service.fetch(
           ids = testIds,
           namespace = namespace
