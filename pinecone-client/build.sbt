@@ -1,3 +1,5 @@
+import Dependencies.Versions._
+
 name := "pinecone-scala-client"
 
 description := "Scala client for Pinecone API implemented with Play WS lib."
@@ -6,8 +8,8 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.18"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.18" % Test
 libraryDependencies += "org.scalatestplus" %% "mockito-4-11" % "3.2.18.0" % Test
 
-libraryDependencies += "io.cequence" %% "ws-client-core" % "0.3.0"
-libraryDependencies += "io.cequence" %% "ws-client-play" % "0.3.0"
+libraryDependencies += "io.cequence" %% "ws-client-core" % wsClient
+libraryDependencies += "io.cequence" %% "ws-client-play" % wsClient
 
 lazy val playWsVersion = settingKey[String]("Play WS version")
 inThisBuild(
