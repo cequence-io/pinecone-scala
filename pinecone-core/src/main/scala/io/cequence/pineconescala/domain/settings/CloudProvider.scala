@@ -3,6 +3,8 @@ package io.cequence.pineconescala.domain.settings
 import io.cequence.wsclient.domain.NamedEnumValue
 
 sealed abstract class CloudProvider(name: String) extends NamedEnumValue(name)
+
+// TODO: if not exhaustive we need a custom cloud provider
 object CloudProvider {
   case object AWS extends CloudProvider("aws")
   case object GCP extends CloudProvider("gcp")

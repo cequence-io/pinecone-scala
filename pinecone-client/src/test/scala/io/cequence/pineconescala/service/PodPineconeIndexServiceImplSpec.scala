@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.pineconescala.domain.response.CollectionInfo
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+import io.cequence.pineconescala.domain.settings.IndexSettings.{
   CreatePodBasedIndexSettings,
   CreateServerlessIndexSettings
 }
@@ -77,8 +77,8 @@ class PodPineconeIndexServiceImplSpec
         _ <- pineconeIndexService.createIndex(
           newIndexName,
           dimensions,
-          Metric.cosine,
           CreatePodBasedIndexSettings(
+            metric = Metric.cosine,
             pods = 2,
             replicas = 2,
             podType = PodType.p1_x1,

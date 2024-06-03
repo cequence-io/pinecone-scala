@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.{IndexSettingsType, QuerySettings}
+import io.cequence.pineconescala.domain.settings.{IndexSettings, QuerySettings}
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.domain.WsRequestContext
@@ -233,7 +233,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     )
   }
 
-  def apply[S <: IndexSettingsType](
+  def apply[S <: IndexSettings](
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,

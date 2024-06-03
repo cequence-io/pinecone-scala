@@ -5,7 +5,7 @@ import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.Metric
 import io.cequence.pineconescala.domain.settings.{CloudProvider, Region}
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.CreateServerlessIndexSettings
+import io.cequence.pineconescala.domain.settings.IndexSettings.CreateServerlessIndexSettings
 import org.scalatest.GivenWhenThen
 import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -53,8 +53,7 @@ class ServerlessPineconeIndexServiceImplSpec
         _ <- pineconeIndexService.createIndex(
           newIndexName,
           dimensions,
-          Metric.cosine,
-          CreateServerlessIndexSettings(CloudProvider.AWS, Region.EUWest1)
+          CreateServerlessIndexSettings(Metric.cosine, CloudProvider.AWS, Region.EUWest1)
         )
         indexes <- pineconeIndexService.listIndexes
         _ <- pineconeIndexService.deleteIndex(newIndexName)

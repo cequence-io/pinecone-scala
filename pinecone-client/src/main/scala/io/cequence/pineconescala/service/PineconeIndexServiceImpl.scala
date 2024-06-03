@@ -6,7 +6,7 @@ import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+import io.cequence.pineconescala.domain.settings.IndexSettings.{
   CreatePodBasedIndexSettings,
   CreateServerlessIndexSettings
 }
@@ -20,7 +20,7 @@ import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ServerlessIndexServiceImpl(
+private final class ServerlessIndexServiceImpl(
   apiKey: String,
   explTimeouts: Option[Timeouts] = None
 )(
@@ -36,7 +36,7 @@ class ServerlessIndexServiceImpl(
   override protected val coreUrl: String =
     "https://api.pinecone.io/"
 
-  override def indexesEndpoint: EndPoint = EndPoint.indexes
+  override protected def indexesEndpoint: EndPoint = EndPoint.indexes
 
   /**
    * This operation creates a Pinecone index. You can use it to specify the measure of
@@ -57,42 +57,30 @@ class ServerlessIndexServiceImpl(
   override def createIndex(
     name: String,
     dimension: Int,
-    metric: Metric,
     settings: CreateServerlessIndexSettings
-  ): Future[CreateResponse] = {
+  ): Future[CreateResponse] =
     execPOSTWithStatus(
       indexesEndpoint,
       bodyParams = {
-        val params = jsonBodyParams(
-          Tag.fromCreateServerlessIndexSettings(name, dimension, metric, settings): _*
+        jsonBodyParams(
+          Tag.fromCreateServerlessIndexSettings(name, dimension, settings): _*
         )
-
-        println(s"params = $params")
-
-        params
       },
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 201 => CreateResponse.Created
-        case 400 =>
-          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid index name.
-        case 409 => CreateResponse.AlreadyExists
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
-  }
+    ).map(handleCreateResponse)
 
   override def describeIndexResponse(json: JsValue): IndexInfo =
     json.asSafe[ServerlessIndexInfo]
 
-  def describeIndexServerless(json: JsValue): ServerlessIndexInfo =
-    json.asSafe[ServerlessIndexInfo]
+  override def describeIndexTyped(
+    indexName: String
+  ): Future[Option[ServerlessIndexInfo]] =
+    describeIndex(indexName).map(
+      _.map(_.asInstanceOf[ServerlessIndexInfo])
+    )
 }
 
-class PineconePodPineconeBasedImpl(
+private final class PineconePodPineconeBasedImpl(
   apiKey: String,
   environment: PodEnv,
   explTimeouts: Option[Timeouts] = None
@@ -109,7 +97,7 @@ class PineconePodPineconeBasedImpl(
   override protected val coreUrl =
     s"https://controller.${environment.environment}.pinecone.io/"
 
-  override def indexesEndpoint: EndPoint = EndPoint.databases
+  override protected def indexesEndpoint: EndPoint = EndPoint.databases
 
   /**
    * This operation creates a Pinecone index. You can use it to specify the measure of
@@ -130,27 +118,15 @@ class PineconePodPineconeBasedImpl(
   override def createIndex(
     name: String,
     dimension: Int,
-    metric: Metric,
     settings: CreatePodBasedIndexSettings
-  ): Future[CreateResponse] = {
+  ): Future[CreateResponse] =
     execPOSTWithStatus(
       indexesEndpoint,
       bodyParams = jsonBodyParams(
-        Tag.fromCreatePodBasedIndexSettings(name, dimension, metric, settings): _*
+        Tag.fromCreatePodBasedIndexSettings(name, dimension, settings): _*
       ),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 201 => CreateResponse.Created
-        case 400 =>
-          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid index name.
-        case 409 => CreateResponse.AlreadyExists
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
-  }
+    ).map(handleCreateResponse)
 
   override def configureIndex(
     indexName: String,
@@ -175,8 +151,15 @@ class PineconePodPineconeBasedImpl(
       }
     }
 
-  override def describeIndexResponse(json: JsValue): IndexInfo =
+  override protected def describeIndexResponse(json: JsValue): IndexInfo =
     json.asSafe[PodBasedIndexInfo]
+
+  override def describeIndexTyped(
+    indexName: String
+  ): Future[Option[PodBasedIndexInfo]] =
+    describeIndex(indexName).map(
+      _.map(_.asInstanceOf[PodBasedIndexInfo])
+    )
 
   override def createCollection(
     name: String,
@@ -189,18 +172,7 @@ class PineconePodPineconeBasedImpl(
         Tag.source -> Some(source)
       ),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      println(s"response = $response")
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 201 => CreateResponse.Created
-        case 400 =>
-          CreateResponse.BadRequest // Encountered when request exceeds quota or an invalid collection name.
-        case 409 => CreateResponse.AlreadyExists
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
+    ).map(handleCreateResponse)
 
   override def listCollections: Future[Seq[String]] =
     execGET(EndPoint.collections).map(response => response.asSafe[Seq[String]]
@@ -221,7 +193,7 @@ class PineconePodPineconeBasedImpl(
  * @since Apr
  *   2023
  */
-abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
+abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   apiKey: String,
   environment: Option[PodEnv],
   explicitTimeouts: Option[Timeouts] = None
@@ -233,9 +205,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-
-  override val defaultRequestTimeout = 120 * 1000 // two minutes
-  override val defaultReadoutTimeout = 120 * 1000 // two minutes
 
   override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
 
@@ -261,15 +230,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
       EndPoint.collections,
       endPointParam = Some(collectionName),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 202 => DeleteResponse.Deleted
-        case 404 => DeleteResponse.NotFound
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
+    ).map(handleDeleteResponse)
 
   override def listIndexes: Future[Seq[String]] =
     execGET(indexesEndpoint).map(response =>
@@ -283,7 +244,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
         )
     )
 
-  def describeIndexResponse(json: JsValue): IndexInfo
+  protected def describeIndexResponse(json: JsValue): IndexInfo
 
   override def describeIndex(
     indexName: String
@@ -302,23 +263,16 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
       indexesEndpoint,
       endPointParam = Some(indexName),
       acceptableStatusCodes = Nil // don't parse response at all
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
-
-      statusCode match {
-        case 202 => DeleteResponse.Deleted
-        case 404 => DeleteResponse.NotFound
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
-      }
-    }
+    ).map(handleDeleteResponse)
 
   // aux
 
   // if environment is specified (pod-based arch) we use databases endpoint,
   // otherwise (serverless arch) we use indexes endpoint
-  def indexesEndpoint: PEP // Either[EndPoint.databases.type, EndPoint.indexes.type]
+  protected def indexesEndpoint: PEP // Either[EndPoint.databases.type, EndPoint.indexes.type]
 
-  override def addHeaders(request: StandaloneWSRequest): StandaloneWSRequest = {
+  // TODO: remove this and use WsRequestContext instead
+  override protected def addHeaders(request: StandaloneWSRequest): StandaloneWSRequest = {
     val apiKeyHeader = ("Api-Key", apiKey)
     request.addHttpHeaders(apiKeyHeader)
   }
@@ -355,7 +309,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
   override def createIndex(
     name: String,
     dimension: Int,
-    metric: Metric,
     settings: S
   ): Future[CreateResponse]
 
@@ -364,6 +317,28 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettingsType](
     message: String
   ): Nothing =
     throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
+
+  protected def handleCreateResponse(response: RichJsResponse): CreateResponse = {
+    val (statusCode, message) = statusCodeAndMessage(response)
+
+    statusCode match {
+      case 201 => CreateResponse.Created
+      // Encountered when request exceeds quota or an invalid index name.
+      case 400 => CreateResponse.BadRequest
+      case 409 => CreateResponse.AlreadyExists
+      case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+    }
+  }
+
+  protected def handleDeleteResponse(response: RichJsResponse): DeleteResponse = {
+    val (statusCode, message) = statusCodeAndMessage(response)
+
+    statusCode match {
+      case 202 => DeleteResponse.Deleted
+      case 404 => DeleteResponse.NotFound
+      case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+    }
+  }
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
@@ -375,7 +350,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): PineconePodPineconeBasedImpl =
+  ): PineconePodBasedIndexService =
     new PineconePodPineconeBasedImpl(apiKey, environment, timeouts)
 
   def apply(

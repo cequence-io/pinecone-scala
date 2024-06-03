@@ -1,8 +1,9 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.{IndexEnv, Metric, PodType}
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.{IndexSettings, IndexSettingsType}
+import io.cequence.pineconescala.domain.settings.IndexSettings
+import io.cequence.wsclient.service.CloseableService
+
 import scala.concurrent.Future
 
 /**
@@ -20,7 +21,9 @@ import scala.concurrent.Future
  * @since Apr
  *   2023
  */
-trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts {
+trait PineconeIndexService[S <: IndexSettings]
+    extends CloseableService
+    with PineconeServiceConsts {
 
   /**
    * Get a description of a collection.
@@ -79,8 +82,7 @@ trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts
   def createIndex(
     name: String,
     dimension: Int,
-    metric: Metric,
-    settings: S // CreatePodBasedIndexSettings = DefaultSettings.CreateIndex
+    settings: S
   ): Future[CreateResponse]
 
   /**
@@ -110,9 +112,4 @@ trait PineconeIndexService[S <: IndexSettingsType] extends PineconeServiceConsts
   def deleteIndex(
     indexName: String
   ): Future[DeleteResponse]
-
-  /**
-   * Closes the underlying ws client, and releases all its resources.
-   */
-  def close(): Unit
 }

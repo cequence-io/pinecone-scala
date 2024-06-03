@@ -2,17 +2,13 @@ package io.cequence.pineconescala.domain.settings
 
 import io.cequence.pineconescala.domain.{Metric, PodType}
 
-case class IndexSettings(
-  // The distance metric to be used for similarity search.
-  // You can use 'euclidean', 'cosine', or 'dotproduct'.
-  metric: Metric,
-  settings: IndexSettingsType
-)
+sealed trait IndexSettings {
+  def metric: Metric
+}
 
-sealed trait IndexSettingsType
-
-object IndexSettingsType {
+object IndexSettings {
   case class CreatePodBasedIndexSettings(
+    metric: Metric,
     // The number of pods for the index to use, including replicas.
     pods: Int,
 
@@ -31,11 +27,11 @@ object IndexSettingsType {
 
     // The name of the collection to create an index from
     sourceCollection: Option[String] = None
-  ) extends IndexSettingsType
+  ) extends IndexSettings
 
   case class CreateServerlessIndexSettings(
+    metric: Metric,
     cloud: CloudProvider,
     region: Region
-  ) extends IndexSettingsType
-
+  ) extends IndexSettings
 }

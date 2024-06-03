@@ -5,7 +5,7 @@ import io.cequence.pineconescala.domain.response.{ConfigureIndexResponse, Create
 
 import scala.concurrent.Future
 
-trait PineconePodBasedSpecifics {
+trait PineconePodBasedExtra {
 
   /**
    * This operation returns a list of your Pinecone collections.

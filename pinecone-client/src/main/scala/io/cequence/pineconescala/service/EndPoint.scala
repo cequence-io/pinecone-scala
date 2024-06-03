@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.Metric
-import io.cequence.pineconescala.domain.settings.IndexSettingsType.{
+import io.cequence.pineconescala.domain.settings.IndexSettings.{
   CreatePodBasedIndexSettings,
   CreateServerlessIndexSettings
 }
@@ -57,16 +57,16 @@ object Tag {
   case object spec extends Tag
   case object shards extends Tag
 
+  // TODO: move elsewhere
   def fromCreatePodBasedIndexSettings(
     name: String,
     dimension: Int,
-    metric: Metric,
     settings: CreatePodBasedIndexSettings
   ): Seq[(Tag, Option[Any])] = {
     Seq(
       Tag.name -> Some(name),
       Tag.dimension -> Some(dimension),
-      Tag.metric -> Some(metric.toString),
+      Tag.metric -> Some(settings.metric.toString),
       Tag.spec -> Some(
         Map(
           "pod" -> Map(
@@ -86,13 +86,12 @@ object Tag {
   def fromCreateServerlessIndexSettings(
     name: String,
     dimension: Int,
-    metric: Metric,
     settings: CreateServerlessIndexSettings
   ): Seq[(Tag, Option[Any])] = {
     Seq(
       Tag.name -> Some(name),
       Tag.dimension -> Some(dimension),
-      Tag.metric -> Some(metric.toString),
+      Tag.metric -> Some(settings.metric.toString),
       Tag.spec -> Some(
         Map(
           "serverless" -> Map(
