@@ -1,16 +1,13 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.Metric
-import io.cequence.pineconescala.domain.settings.IndexSettings.{
-  CreatePodBasedIndexSettings,
-  CreateServerlessIndexSettings
-}
-import io.cequence.wsclient.domain.NamedEnumValue
+import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
+import io.cequence.wsclient.domain.{EnumValue, NamedEnumValue}
 
 sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
 object EndPoint {
   case object describe_index_stats extends EndPoint
+  case object embed extends EndPoint
   case object query extends EndPoint
   case object vectors_delete extends EndPoint("vectors/delete")
   case object vectors_fetch extends EndPoint("vectors/fetch")
@@ -56,6 +53,11 @@ object Tag {
   case object region extends Tag
   case object spec extends Tag
   case object shards extends Tag
+  case object inputs extends Tag
+  case object input_type extends Tag
+  case object model extends Tag
+  case object parameters extends Tag
+  case object truncate extends Tag
 
   // TODO: move elsewhere
   def fromCreatePodBasedIndexSettings(

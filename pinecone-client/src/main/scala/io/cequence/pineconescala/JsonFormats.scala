@@ -3,7 +3,7 @@ package io.cequence.pineconescala
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector}
 import io.cequence.wsclient.JsonUtil.enumFormat
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, Json, Reads}
 
 object JsonFormats {
   // vector-stuff formats
@@ -77,4 +77,9 @@ object JsonFormats {
     Json.format[ServerlessIndexSpec]
   implicit val serverlessIndexInfoFormat: Format[ServerlessIndexInfo] =
     Json.format[ServerlessIndexInfo]
+
+  implicit val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
+    Json.reads[EmbeddingsUsageInfo]
+  implicit val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
+  implicit val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] = Json.reads[GenerateEmbeddingsResponse]
 }

@@ -1,9 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.settings.IndexSettings.{
-  CreatePodBasedIndexSettings,
-  CreateServerlessIndexSettings
-}
+import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.pineconescala.domain.settings._
 
@@ -37,6 +34,10 @@ trait PineconeServiceConsts {
       Metric.cosine,
       CloudProvider.AWS,
       Region.EUWest1
+    )
+
+    val GenerateEmbeddings = GenerateEmbeddingsSettings(
+      model = "multilingual-e5-large"
     )
   }
 }
