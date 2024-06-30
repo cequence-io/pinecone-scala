@@ -9,7 +9,7 @@ import io.cequence.pineconescala.JsonFormats._
 
 import scala.concurrent.Future
 
-abstract class PineconeEmbeddingsServiceImpl extends PineconeEmbeddingsService with WSRequestHelper {
+abstract class PineconeInferenceServiceImpl extends PineconeInferenceService with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag

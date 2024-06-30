@@ -6,7 +6,7 @@ import io.cequence.wsclient.service.CloseableService
 
 import scala.concurrent.Future
 
-trait PineconeEmbeddingsService extends CloseableService with PineconeServiceConsts {
+trait PineconeInferenceService extends CloseableService with PineconeServiceConsts {
 
   /**
    * Uses the specified model to generate embeddings for the input sequence.
