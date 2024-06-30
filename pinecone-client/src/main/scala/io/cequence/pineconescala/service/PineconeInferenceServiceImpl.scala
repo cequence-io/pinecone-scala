@@ -1,15 +1,26 @@
 package io.cequence.pineconescala.service
 
+import akka.stream.Materializer
 import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
 import io.cequence.pineconescala.domain.settings.GenerateEmbeddingsSettings
 import io.cequence.wsclient.JsonUtil.{JsonOps, toJson}
-import io.cequence.wsclient.service.ws.WSRequestHelper
+import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.{JsObject, JsValue}
 import io.cequence.pineconescala.JsonFormats._
+import io.cequence.pineconescala.PineconeScalaClientException
+import play.api.libs.ws.StandaloneWSRequest
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-abstract class PineconeInferenceServiceImpl extends PineconeInferenceService with WSRequestHelper {
+private class PineconeInferenceServiceImpl(
+  apiKey: String,
+  override val coreUrl: String,
+  explicitTimeouts: Option[Timeouts] = None
+)(
+  implicit val ec: ExecutionContext,
+  val materializer: Materializer
+) extends PineconeInferenceService
+    with WSRequestHelper {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
@@ -23,7 +34,10 @@ abstract class PineconeInferenceServiceImpl extends PineconeInferenceService wit
    * @return
    *   list of embeddings inside an envelope
    */
-  override def createEmbeddings(inputs: Seq[String], settings: GenerateEmbeddingsSettings): Future[GenerateEmbeddingsResponse] = {
+  override def createEmbeddings(
+    inputs: Seq[String],
+    settings: GenerateEmbeddingsSettings
+  ): Future[GenerateEmbeddingsResponse] = {
     val basicParams: Seq[(Tag, Option[JsValue])] = jsonBodyParams(
       Tag.inputs -> Some(inputs),
       Tag.model -> Some(settings.model)
@@ -47,7 +61,35 @@ abstract class PineconeInferenceServiceImpl extends PineconeInferenceService wit
 
   }
 
+  override def addHeaders(request: StandaloneWSRequest) = {
+    val apiKeyHeader = ("Api-Key", apiKey)
+    request.addHttpHeaders(apiKeyHeader)
+  }
+
+  override protected def handleErrorCodes(
+    httpCode: Int,
+    message: String
+  ): Nothing =
+    throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
+
   override def close(): Unit =
     client.close()
+
+}
+
+object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
+
+  def apply(
+    apiKey: String,
+    indexHostURL: String,
+    timeouts: Option[Timeouts]
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeInferenceService = {
+    val indexHostURLWithEndingSlash =
+      if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
+    new PineconeInferenceServiceImpl(apiKey, indexHostURLWithEndingSlash, timeouts)
+  }
 
 }
