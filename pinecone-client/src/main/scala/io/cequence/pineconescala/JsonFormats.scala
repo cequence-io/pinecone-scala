@@ -1,9 +1,11 @@
 package io.cequence.pineconescala
 
 import io.cequence.pineconescala.domain.response._
+import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, EmbeddingsTruncate}
+import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
 import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector}
 import io.cequence.wsclient.JsonUtil.enumFormat
-import play.api.libs.json.{Format, Json, Reads}
+import play.api.libs.json.{Format, JsString, Json, Reads, Writes}
 
 object JsonFormats {
   // vector-stuff formats
@@ -78,8 +80,20 @@ object JsonFormats {
   implicit val serverlessIndexInfoFormat: Format[ServerlessIndexInfo] =
     Json.format[ServerlessIndexInfo]
 
+  // embeddings
   implicit val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
     Json.reads[EmbeddingsUsageInfo]
   implicit val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
+  implicit val embeddingValuesReads: Reads[EmbeddingsValues] = Json.reads[EmbeddingsValues]
   implicit val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] = Json.reads[GenerateEmbeddingsResponse]
+
+  implicit val embeddingsInputTypeWrites: Writes[EmbeddingsInputType] = enumFormat(
+    Query,
+    Passage
+  )
+
+  implicit val embeddingsTruncateWrites: Writes[EmbeddingsTruncate] = enumFormat(
+    EmbeddingsTruncate.None,
+    EmbeddingsTruncate.End
+  )
 }

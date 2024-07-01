@@ -6,7 +6,7 @@ import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, IndexSettings}
 import io.cequence.wsclient.JsonUtil.{JsonOps, toJson}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.wsclient.domain.WsRequestContext
@@ -42,15 +42,15 @@ private class PineconeInferenceServiceImpl(
     settings: GenerateEmbeddingsSettings
   ): Future[GenerateEmbeddingsResponse] = {
     val basicParams: Seq[(Tag, Option[JsValue])] = jsonBodyParams(
-      Tag.inputs -> Some(inputs),
+      Tag.inputs -> Some(JsArray(inputs.map(input => JsObject(Seq("text" -> toJson(input)))))),
       Tag.model -> Some(settings.model)
     )
     val otherParams: (Tag, Option[JsValue]) = {
       Tag.parameters -> Some(
         JsObject(
           Seq(
-            Tag.input_type.toString() -> toJson(settings.input_type),
-            Tag.truncate.toString() -> toJson(settings.truncate)
+            Tag.input_type.toString() -> Json.toJson(settings.input_type),
+            Tag.truncate.toString() -> Json.toJson(settings.truncate)
           )
         )
       )
@@ -66,7 +66,10 @@ private class PineconeInferenceServiceImpl(
 
   override def addHeaders(request: StandaloneWSRequest) = {
     val apiKeyHeader = ("Api-Key", apiKey)
-    request.addHttpHeaders(apiKeyHeader)
+    val versionHeader = ("X-Pinecone-API-Version", "2024-07")
+    request
+      .addHttpHeaders(apiKeyHeader)
+      .addHttpHeaders(versionHeader)
   }
 
   override protected def handleErrorCodes(

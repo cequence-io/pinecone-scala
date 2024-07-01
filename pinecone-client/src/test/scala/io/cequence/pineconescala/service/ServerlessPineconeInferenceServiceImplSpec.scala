@@ -31,8 +31,9 @@ class ServerlessPineconeInferenceServiceImplSpec
         embeddings <- service.createEmbeddings(Seq("The quick brown fox jumped over the lazy dog"),
           settings = DefaultSettings.GenerateEmbeddings.withPassageInputType.withEndTruncate)
       } yield {
-        println(embeddings)
-        embeddings.data should not be empty
+        embeddings.data.size should be(1)
+        embeddings.data(0).values should not be empty
+        embeddings.usage.total_tokens should be(16)
       }
     }
 
