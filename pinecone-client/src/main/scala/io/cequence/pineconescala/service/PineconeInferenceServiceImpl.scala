@@ -87,7 +87,7 @@ object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply[S <: IndexSettings](
     apiKey: String,
-    timeouts: Option[Timeouts]
+    timeouts: Option[Timeouts] = None
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
