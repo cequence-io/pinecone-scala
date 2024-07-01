@@ -6,6 +6,7 @@ This is an intuitive async Scala client for Pinecone API supporting all the avai
 * **Vector Operations**: [describeIndexStats](https://docs.pinecone.io/reference/describe_index_stats_post), [query](https://docs.pinecone.io/reference/query), [delete](https://docs.pinecone.io/reference/delete_post), [fetch](https://docs.pinecone.io/reference/fetch), [update](https://docs.pinecone.io/reference/update), and [upsert](https://docs.pinecone.io/reference/upsert)
 * **Collection Operations**: [listCollections](https://docs.pinecone.io/reference/list_collections), [createCollection](https://docs.pinecone.io/reference/create_collection), [describeCollection](https://docs.pinecone.io/reference/describe_collection), and [deleteCollection](https://docs.pinecone.io/reference/delete_collection)
 * **Index Operations**: [listIndexes](https://docs.pinecone.io/reference/list_indexes), [creatIndex](https://docs.pinecone.io/reference/create_index), [describeIndex](https://docs.pinecone.io/reference/describe_index), [deleteIndex](https://docs.pinecone.io/reference/delete_index), and [configureIndex](https://docs.pinecone.io/reference/configure_index)
+* **Inference Operations**: [embedData](https://docs.pinecone.io/reference/api/inference/generate-embeddings)
 
 Note that in order to be consistent with the Pinecone API naming, the service function names match exactly the API endpoint titles/descriptions with camelcase.
 Also, we aimed the lib to be self-contained with the fewest dependencies possible therefore we ended up using only two libs `play-ahc-ws-standalone` and `play-ws-standalone-json` (at the top level).  
@@ -81,7 +82,7 @@ Then you can obtain a service (pod or serverless-based) in one of the following 
 
 **Ib. Obtaining `PineconeVectorService`**
 
-Same as with `PineconeIndexService`, you need to first provide implicit execution context and akka materializer. Then you can obtain a service in one of the following ways.
+Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
 
 - Default config (expects env. variable(s) to be set as defined in `Config` section). Note that if the index with a given name is not available, the factory will return `None`.
 ```scala
@@ -91,6 +92,23 @@ Same as with `PineconeIndexService`, you need to first provide implicit executio
     )
     // do something with the service
   }
+```
+
+**Ic. Obtaining `PineconeInferenceService`**
+
+Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
+
+With config
+```scala
+  val config = ConfigFactory.load("path_to_my_custom_config")
+  val service = PineconeInferenceServiceFactory(config)
+```
+
+Directly with api-key
+```scala
+  val service = PineconeInferenceServiceFactory(
+   apiKey = "your_api_key"
+  )
 ```
 
 - Custom config
@@ -374,6 +392,19 @@ Examples:
     println(stats)      
   )
 ```
+
+**Inference Operations**
+
+- Generate embeddings
+
+```scala
+  pineconeInferenceService.createEmbeddings(Seq("The quick brown fox jumped over the lazy dog")).map { embeddings =>
+    println(embeddings.data.mkString("\n"))
+  }
+  
+}
+```
+
 ## Demo
 
 For ready-to-run demos pls. refer to separate seed projects:
