@@ -61,7 +61,7 @@ Then you can obtain a service (pod or serverless-based) in one of the following 
 - Custom config
 ```scala
   val config = ConfigFactory.load("path_to_my_custom_config")
-  val service = PineconeIndexServiceFactory(config)
+  val service = PineconeInd[ServerlessPineconeInferenceServiceImplSpec.scala](pinecone-client%2Fsrc%2Ftest%2Fscala%2Fio%2Fcequence%2Fpineconescala%2Fservice%2FServerlessPineconeInferenceServiceImplSpec.scala)exServiceFactory(config)
 ```
 
 - Without config for pod-based service (with env)
@@ -81,7 +81,7 @@ Then you can obtain a service (pod or serverless-based) in one of the following 
 
 **Ib. Obtaining `PineconeVectorService`**
 
-Same as with `PineconeIndexService`, you need to first provide implicit execution context and akka materializer. Then you can obtain a service in one of the following ways.
+Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
 
 - Default config (expects env. variable(s) to be set as defined in `Config` section). Note that if the index with a given name is not available, the factory will return `None`.
 ```scala
@@ -91,6 +91,23 @@ Same as with `PineconeIndexService`, you need to first provide implicit executio
     )
     // do something with the service
   }
+```
+
+**Ic. Obtaining `PineconeInferenceService`**
+
+Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
+
+With config
+```scala
+  val config = ConfigFactory.load("path_to_my_custom_config")
+  val service = PineconeInferenceServiceFactory(config)
+```
+
+Directly with api-key
+```scala
+  val service = PineconeInferenceServiceFactory(
+   apiKey = "your_api_key"
+  )
 ```
 
 - Custom config
@@ -374,6 +391,19 @@ Examples:
     println(stats)      
   )
 ```
+
+**Inference Operations**
+
+- Generate embeddings
+
+```scala
+  pineconeInferenceService.createEmbeddings(Seq("The quick brown fox jumped over the lazy dog")).map { embeddings =>
+    println(embeddings.data.mkString("\n"))
+  }
+  
+}
+```
+
 ## Demo
 
 For ready-to-run demos pls. refer to separate seed projects:
