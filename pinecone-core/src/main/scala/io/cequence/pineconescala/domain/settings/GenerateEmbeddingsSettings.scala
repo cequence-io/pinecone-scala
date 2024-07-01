@@ -11,7 +11,12 @@ case class GenerateEmbeddingsSettings(
 
   // The number of dimensions the resulting output embeddings should have. Only supported in text-embedding-3 and later models.
   truncate: String = "END"
-)
+) {
+  def withPassageInputType = copy(input_type = Some("passage"))
+  def withQueryInputType = copy(input_type = Some("query"))
+  def withoutTruncate = copy(truncate = "none")
+  def withEndTruncate = copy(truncate = "end")
+}
 
 sealed trait EmbeddingsEncodingFormat extends EnumValue
 

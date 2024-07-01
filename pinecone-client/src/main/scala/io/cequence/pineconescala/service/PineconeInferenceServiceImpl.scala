@@ -1,20 +1,21 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
+import com.typesafe.config.Config
 import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
-import io.cequence.pineconescala.domain.settings.GenerateEmbeddingsSettings
+import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, IndexSettings}
 import io.cequence.wsclient.JsonUtil.{JsonOps, toJson}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.{JsObject, JsValue}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
+import io.cequence.wsclient.domain.WsRequestContext
 import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
 private class PineconeInferenceServiceImpl(
   apiKey: String,
-  override val coreUrl: String,
   explicitTimeouts: Option[Timeouts] = None
 )(
   implicit val ec: ExecutionContext,
@@ -24,6 +25,8 @@ private class PineconeInferenceServiceImpl(
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
+  override val coreUrl: String = "https://api.pinecone.io/"
+  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
 
   /**
    * Uses the specified model to generate embeddings for the input sequence.
@@ -79,17 +82,28 @@ private class PineconeInferenceServiceImpl(
 
 object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
 
-  def apply(
+  def apply[S <: IndexSettings](
     apiKey: String,
-    indexHostURL: String,
     timeouts: Option[Timeouts]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
   ): PineconeInferenceService = {
-    val indexHostURLWithEndingSlash =
-      if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
-    new PineconeInferenceServiceImpl(apiKey, indexHostURLWithEndingSlash, timeouts)
+    new PineconeInferenceServiceImpl(apiKey, timeouts)
+  }
+
+  def apply(
+    config: Config
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeInferenceService = {
+    val timeouts = loadTimeouts(config)
+
+    apply(
+      apiKey = config.getString(s"$configPrefix.apiKey"),
+      timeouts = timeouts.toOption
+    )
   }
 
 }
