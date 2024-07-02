@@ -32,6 +32,7 @@ object EmbeddingsTruncate {
   case object End extends EmbeddingsTruncate(name = "END")
 }
 
+// TODO: do we need this?
 sealed trait EmbeddingsEncodingFormat extends EnumValue
 
 object EmbeddingsEncodingFormat {

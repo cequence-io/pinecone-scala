@@ -1,5 +1,4 @@
 import Dependencies.Versions._
-import sbt.Keys.test
 
 name := "pinecone-scala-core"
 

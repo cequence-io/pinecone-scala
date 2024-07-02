@@ -5,12 +5,12 @@ import com.typesafe.config.Config
 import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, IndexSettings}
 import io.cequence.wsclient.JsonUtil.{JsonOps, toJson}
+import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsNull, JsObject, JsValue, Json}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.wsclient.domain.WsRequestContext
-import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,7 +26,14 @@ private class PineconeInferenceServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
   override val coreUrl: String = "https://api.pinecone.io/"
-  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
+
+  override protected val requestContext = WsRequestContext(
+    authHeaders = Seq(
+      ("Api-Key", apiKey),
+      ("X-Pinecone-API-Version", "2024-07")
+    ),
+    explTimeouts = explicitTimeouts
+  )
 
   /**
    * Uses the specified model to generate embeddings for the input sequence.
@@ -40,52 +47,35 @@ private class PineconeInferenceServiceImpl(
   override def createEmbeddings(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings
-  ): Future[GenerateEmbeddingsResponse] = {
-    val basicParams: Seq[(Tag, Option[JsValue])] = jsonBodyParams(
-      Tag.inputs -> Some(JsArray(inputs.map(input => JsObject(Seq("text" -> toJson(input)))))),
-      Tag.model -> Some(settings.model)
-    )
-    val otherParams: (Tag, Option[JsValue]) = {
-      Tag.parameters -> Some(
-        JsObject(
-          Seq(
-            Tag.input_type.toString() -> Json.toJson(settings.input_type),
-            Tag.truncate.toString() -> Json.toJson(settings.truncate)
+  ): Future[GenerateEmbeddingsResponse] =
+    execPOST(
+      EndPoint.embed,
+      bodyParams = jsonBodyParams(
+        Tag.inputs -> Some(
+          inputs.map(input => Map("text" -> input))
+        ),
+        Tag.model -> Some(settings.model),
+        Tag.parameters -> Some(
+          Map(
+            "input_type" -> settings.input_type.map(_.toString),
+            "truncate" -> settings.truncate.toString
           )
         )
       )
-    }
-    execPOST(
-      EndPoint.embed,
-      bodyParams = basicParams :+ otherParams
     ).map(
-      _.asSafe[GenerateEmbeddingsResponse]
+      _.asSafeJson[GenerateEmbeddingsResponse]
     )
-
-  }
-
-  override def addHeaders(request: StandaloneWSRequest) = {
-    val apiKeyHeader = ("Api-Key", apiKey)
-    val versionHeader = ("X-Pinecone-API-Version", "2024-07")
-    request
-      .addHttpHeaders(apiKeyHeader)
-      .addHttpHeaders(versionHeader)
-  }
 
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String
   ): Nothing =
     throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
-
-  override def close(): Unit =
-    client.close()
-
 }
 
 object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
 
-  def apply[S <: IndexSettings](
+  def apply(
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
@@ -108,5 +98,4 @@ object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
       timeouts = timeouts.toOption
     )
   }
-
 }

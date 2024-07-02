@@ -13,10 +13,10 @@ import io.cequence.pineconescala.domain.settings.IndexSettings.{
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.wsclient.JsonUtil.JsonOps
-import io.cequence.wsclient.domain.WsRequestContext
+import io.cequence.wsclient.ResponseImplicits._
+import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.JsValue
-import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -59,7 +59,7 @@ private final class ServerlessIndexServiceImpl(
     dimension: Int,
     settings: CreateServerlessIndexSettings
   ): Future[CreateResponse] =
-    execPOSTWithStatus(
+    execPOSTRich(
       indexesEndpoint,
       bodyParams = {
         jsonBodyParams(
@@ -120,7 +120,7 @@ private final class PineconePodPineconeBasedImpl(
     dimension: Int,
     settings: CreatePodBasedIndexSettings
   ): Future[CreateResponse] =
-    execPOSTWithStatus(
+    execPOSTRich(
       indexesEndpoint,
       bodyParams = jsonBodyParams(
         Tag.fromCreatePodBasedIndexSettings(name, dimension, settings): _*
@@ -133,21 +133,22 @@ private final class PineconePodPineconeBasedImpl(
     replicas: Option[Int],
     podType: Option[PodType]
   ): Future[ConfigureIndexResponse] =
-    execPATCHWithStatus(
+    execPATCRich(
       indexesEndpoint,
       endPointParam = Some(indexName),
       bodyParams = jsonBodyParams(
         Tag.replicas -> replicas,
         Tag.pod_type -> podType.map(_.toString)
       )
-    ).map { response =>
-      val (statusCode, message) = statusCodeAndMessage(response)
+    ).map { richResponse =>
+      val status = richResponse.status
 
-      statusCode match {
+      status.code match {
         case 202 => ConfigureIndexResponse.Updated
         case 400 => ConfigureIndexResponse.BadRequestNotEnoughQuota
         case 404 => ConfigureIndexResponse.NotFound
-        case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+        case _ =>
+          throw new PineconeScalaClientException(s"Code ${status.code} : ${status.message}")
       }
     }
 
@@ -165,7 +166,7 @@ private final class PineconePodPineconeBasedImpl(
     name: String,
     source: String
   ): Future[CreateResponse] =
-    execPOSTWithStatus(
+    execPOSTRich(
       EndPoint.collections,
       bodyParams = jsonBodyParams(
         Tag.name -> Some(name),
@@ -175,7 +176,8 @@ private final class PineconePodPineconeBasedImpl(
     ).map(handleCreateResponse)
 
   override def listCollections: Future[Seq[String]] =
-    execGET(EndPoint.collections).map(response => response.asSafe[Seq[String]]
+    execGET(EndPoint.collections).map(
+      _.asSafeJson[Seq[String]]
 //      response
 //        .asSafe[Seq[String]](response \ "collections")
 //        .asOpt[Seq[JsValue]]
@@ -206,7 +208,10 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
+  override protected val requestContext = WsRequestContext(
+    authHeaders = Seq(("Api-Key", apiKey)),
+    explTimeouts = explicitTimeouts
+  )
 
   def isPodBasedIndex: Boolean = environment.isDefined
   def isServerlessIndex: Boolean = !isPodBasedIndex
@@ -214,19 +219,19 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   override def describeCollection(
     collectionName: String
   ): Future[Option[CollectionInfo]] =
-    execGETWithStatus(
+    execGETRich(
       EndPoint.collections,
       endPointParam = Some(collectionName)
     ).map { response =>
       handleNotFoundAndError(response).map(
-        _.asSafe[CollectionInfo]
+        _.asSafeJson[CollectionInfo]
       )
     }
 
   override def deleteCollection(
     collectionName: String
   ): Future[DeleteResponse] =
-    execDELETEWithStatus(
+    execDELETERich(
       EndPoint.collections,
       endPointParam = Some(collectionName),
       acceptableStatusCodes = Nil // don't parse response at all
@@ -234,13 +239,13 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
 
   override def listIndexes: Future[Seq[String]] =
     execGET(indexesEndpoint).map(response =>
-      (response \ "indexes")
+      (response.json \ "indexes")
         .asOpt[Seq[JsValue]]
         .map(indexes => {
           indexes.flatMap(index => (index \ "name").asOpt[String])
         })
         .getOrElse(
-          response.asSafe[Seq[String]]
+          response.asSafeJson[Seq[String]]
         )
     )
 
@@ -249,17 +254,19 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   override def describeIndex(
     indexName: String
   ): Future[Option[IndexInfo]] =
-    execGETWithStatus(
+    execGETRich(
       indexesEndpoint,
       endPointParam = Some(indexName)
-    ).map { response: RichJsResponse =>
-      handleNotFoundAndError(response).map(describeIndexResponse)
+    ).map { richResponse: RichResponse =>
+      handleNotFoundAndError(richResponse).map(response =>
+        describeIndexResponse(response.json)
+      )
     }
 
   override def deleteIndex(
     indexName: String
   ): Future[DeleteResponse] =
-    execDELETEWithStatus(
+    execDELETERich(
       indexesEndpoint,
       endPointParam = Some(indexName),
       acceptableStatusCodes = Nil // don't parse response at all
@@ -270,25 +277,6 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   // if environment is specified (pod-based arch) we use databases endpoint,
   // otherwise (serverless arch) we use indexes endpoint
   protected def indexesEndpoint: PEP // Either[EndPoint.databases.type, EndPoint.indexes.type]
-
-  // TODO: remove this and use WsRequestContext instead
-  override protected def addHeaders(request: StandaloneWSRequest): StandaloneWSRequest = {
-    val apiKeyHeader = ("Api-Key", apiKey)
-    request.addHttpHeaders(apiKeyHeader)
-  }
-
-  protected def statusCodeAndMessage(
-    response: RichJsResponse
-  ): (Int, String) =
-    response match {
-      case Right(statusCodeAndMessage) => statusCodeAndMessage
-
-      // should never happen
-      case Left(json) =>
-        throw new IllegalArgumentException(
-          s"Status code and message expected but got a json value '${json}'."
-        )
-    }
 
   /**
    * This operation creates a Pinecone index. You can use it to specify the measure of
@@ -318,27 +306,27 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   ): Nothing =
     throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
 
-  protected def handleCreateResponse(response: RichJsResponse): CreateResponse = {
-    val (statusCode, message) = statusCodeAndMessage(response)
-
-    statusCode match {
+  protected def handleCreateResponse(response: RichResponse): CreateResponse =
+    response.status.code match {
       case 201 => CreateResponse.Created
       // Encountered when request exceeds quota or an invalid index name.
       case 400 => CreateResponse.BadRequest
       case 409 => CreateResponse.AlreadyExists
-      case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      case _ =>
+        throw new PineconeScalaClientException(
+          s"Code ${response.status.code} : ${response.status.message}"
+        )
     }
-  }
 
-  protected def handleDeleteResponse(response: RichJsResponse): DeleteResponse = {
-    val (statusCode, message) = statusCodeAndMessage(response)
-
-    statusCode match {
+  protected def handleDeleteResponse(response: RichResponse): DeleteResponse =
+    response.status.code match {
       case 202 => DeleteResponse.Deleted
       case 404 => DeleteResponse.NotFound
-      case _   => throw new PineconeScalaClientException(s"Code ${statusCode} : ${message}")
+      case _ =>
+        throw new PineconeScalaClientException(
+          s"Code ${response.status.code} : ${response.status.message}"
+        )
     }
-  }
 }
 
 object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {

@@ -8,10 +8,10 @@ import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{IndexSettings, QuerySettings}
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.wsclient.JsonUtil.JsonOps
+import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.domain.WsRequestContext
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.json.Json
-import play.api.libs.ws.StandaloneWSRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,11 +37,14 @@ private class PineconeVectorServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected val requestContext = WsRequestContext(explTimeouts = explicitTimeouts)
+  override protected val requestContext = WsRequestContext(
+    authHeaders = Seq(("Api-Key", apiKey)),
+    explTimeouts = explicitTimeouts
+  )
 
   override def describeIndexStats: Future[IndexStats] =
     execGET(EndPoint.describe_index_stats).map(
-      _.asSafe[IndexStats]
+      _.asSafeJson[IndexStats]
     )
 
   override def query(
@@ -61,7 +64,7 @@ private class PineconeVectorServiceImpl(
         Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat))
       )
     ).map(
-      _.asSafe[QueryResponse]
+      _.asSafeJson[QueryResponse]
     )
 
   override def queryById(
@@ -81,7 +84,7 @@ private class PineconeVectorServiceImpl(
         Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat))
       )
     ).map(
-      _.asSafe[QueryResponse]
+      _.asSafeJson[QueryResponse]
     )
 
   override def listVectorIDs(
@@ -99,7 +102,7 @@ private class PineconeVectorServiceImpl(
         Tag.prefix -> prefix
       )
     ).map(
-      _.asSafe[ListVectorIdsResponse]
+      _.asSafeJson[ListVectorIdsResponse]
     )
 
   override def delete(
@@ -150,7 +153,7 @@ private class PineconeVectorServiceImpl(
         Tag.namespace -> Some(namespace)
       ) ++ ids.map(Tag.ids -> Some(_))
     ).map(
-      _.asSafe[FetchResponse]
+      _.asSafeJson[FetchResponse]
     )
 
   override def update(
@@ -181,20 +184,15 @@ private class PineconeVectorServiceImpl(
         Tag.vectors -> Some(vectors.map(Json.toJson(_))),
         Tag.namespace -> Some(namespace)
       )
-    ).map(json =>
-      (json \ "upsertedCount").toOption match {
+    ).map(response =>
+      (response.json \ "upsertedCount").toOption match {
         case Some(upsertedCountJson) => upsertedCountJson.asSafe[Int]
         case None =>
           throw new PineconeScalaClientException(
-            s"Upsert should return 'upsertedCount' but got: ${Json.prettyPrint(json)}."
+            s"Upsert should return 'upsertedCount' but got: ${Json.prettyPrint(response.json)}."
           )
       }
     )
-
-  override def addHeaders(request: StandaloneWSRequest) = {
-    val apiKeyHeader = ("Api-Key", apiKey)
-    request.addHttpHeaders(apiKeyHeader)
-  }
 
   override protected def handleErrorCodes(
     httpCode: Int,
