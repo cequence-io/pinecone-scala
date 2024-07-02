@@ -257,7 +257,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
     execGETRich(
       indexesEndpoint,
       endPointParam = Some(indexName)
-    ).map { richResponse: RichResponse =>
+    ).map { richResponse =>
       handleNotFoundAndError(richResponse).map(response =>
         describeIndexResponse(response.json)
       )

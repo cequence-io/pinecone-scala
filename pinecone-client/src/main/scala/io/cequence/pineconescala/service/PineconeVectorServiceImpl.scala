@@ -231,11 +231,11 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     )
   }
 
-  def apply[S <: IndexSettings](
+  def apply(
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,
-    pineconeIndexService: PineconeIndexService[S]
+    pineconeIndexService: PineconeIndexService[_ <: IndexSettings]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
