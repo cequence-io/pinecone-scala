@@ -19,6 +19,7 @@ object EndPoint {
   case object indexes extends EndPoint
 }
 
+// TODO: rename to Param
 sealed abstract class Tag(value: String = "") extends NamedEnumValue(value)
 
 object Tag {

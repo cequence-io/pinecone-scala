@@ -4,10 +4,8 @@ import akka.stream.Materializer
 import com.typesafe.config.Config
 import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, IndexSettings}
-import io.cequence.wsclient.JsonUtil.{JsonOps, toJson}
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
-import play.api.libs.json.{JsArray, JsNull, JsObject, JsValue, Json}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.wsclient.domain.WsRequestContext

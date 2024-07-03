@@ -17,9 +17,9 @@ trait PineconeInferenceService extends CloseableService with PineconeServiceCons
    * @return
    *   list of embeddings inside an envelope
    */
+  // TODO: rename to embedData to be consistent with the API
   def createEmbeddings(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings = DefaultSettings.GenerateEmbeddings
   ): Future[GenerateEmbeddingsResponse]
-
 }

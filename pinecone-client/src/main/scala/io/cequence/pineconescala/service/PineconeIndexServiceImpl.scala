@@ -387,4 +387,13 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
         Right(new ServerlessIndexServiceImpl(apiKey, timeouts))
     }
 
+  implicit class FactoryImplicits(
+    either: Either[PineconePodBasedIndexService, PineconeServerlessIndexService]
+  ) {
+    def asOne: PineconeIndexService[_] =
+      either match {
+        case Left(service)  => service
+        case Right(service) => service
+      }
+  }
 }
