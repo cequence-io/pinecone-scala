@@ -12,9 +12,11 @@ import org.scalatest.wordspec.AsyncWordSpec
 import scala.concurrent.ExecutionContext
 
 class PineconeAssistantServiceImplSpec
-  extends AsyncWordSpec
-  with GivenWhenThen
-  with ServerlessFixtures with Matchers with PineconeServiceConsts {
+    extends AsyncWordSpec
+    with GivenWhenThen
+    with ServerlessFixtures
+    with Matchers
+    with PineconeServiceConsts {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
@@ -75,14 +77,14 @@ class PineconeAssistantServiceImplSpec
         deleteResponse should be(DeleteResponse.Deleted)
         afterDelete should be(None)
       }
+    }
 
-      "return NotFound when deleting a non-existent assistant" in {
-        val service = assistantServiceBuilder
-        for {
-          deleteResponse <- service.deleteAssistant("non-existent-assistant")
-        } yield {
-          deleteResponse should be(DeleteResponse.NotFound)
-        }
+    "return NotFound when deleting a non-existent assistant" in {
+      val service = assistantServiceBuilder
+      for {
+        deleteResponse <- service.deleteAssistant("non-existent-assistant")
+      } yield {
+        deleteResponse should be(DeleteResponse.NotFound)
       }
     }
 
