@@ -78,17 +78,23 @@ class PineconeAssistantServiceImpl(
 
   override def describeFile(
     assistantName: String,
-    fileName: String
+    fileId: UUID
   ): Future[Option[File]] =
     execGETRich(
       EndPoint.files,
       // FIXME: provide support for multiple end point params
-      endPointParam = Some(s"$assistantName/$fileName"),
+      endPointParam = Some(s"$assistantName/${fileId.toString}"),
     ).map { response =>
       handleNotFoundAndError(response).map(
         _.asSafeJson[File]
       )
     }
+
+  override def deleteFile(assistantName: String, fileId: UUID): Future[DeleteResponse] =
+    execDELETERich(
+      EndPoint.files,
+      endPointParam = Some(s"$assistantName/${fileId.toString}")
+    ).map(handleDeleteResponse)
 
   override protected def handleErrorCodes(
     httpCode: Int,

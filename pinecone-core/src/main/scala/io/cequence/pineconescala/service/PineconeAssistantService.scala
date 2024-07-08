@@ -3,6 +3,7 @@ package io.cequence.pineconescala.service
 import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse, File}
 import io.cequence.wsclient.service.CloseableService
 
+import java.util.UUID
 import scala.concurrent.Future
 
 trait PineconeAssistantService extends CloseableService with PineconeServiceConsts {
@@ -49,13 +50,20 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
    */
   def uploadFile(assistantName: String): Future[File]
 
-
   /**
    *
    * @param assistantName The name of the base to get file from.
-   * @param fileName The UUID of the file to be described.
+   * @param fileId The UUID of the file to be described.
    * @return
    */
-  def describeFile(assistantName: String, fileName: String): Future[Option[File]]
+  def describeFile(assistantName: String, fileId: UUID): Future[Option[File]]
+
+  /**
+   *
+   * @param assistantName
+   * @param fileId The UUID of the file to be described.
+   * @return
+   */
+  def deleteFile(assistantName: String, fileId: UUID): Future[DeleteResponse]
 
 }
