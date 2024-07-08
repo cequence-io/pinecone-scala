@@ -9,6 +9,7 @@ object EndPoint {
   case object assistants extends EndPoint("assistant/assistants")
   case object describe_index_stats extends EndPoint
   case object embed extends EndPoint
+  case object files extends EndPoint("assistant/files")
   case object query extends EndPoint
   case object vectors_delete extends EndPoint("vectors/delete")
   case object vectors_fetch extends EndPoint("vectors/fetch")

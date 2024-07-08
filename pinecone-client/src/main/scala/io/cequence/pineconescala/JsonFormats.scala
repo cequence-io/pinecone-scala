@@ -106,5 +106,12 @@ object JsonFormats {
   )
   implicit val assistantFormat: Format[Assistant] = Json.format[Assistant]
 
-
+  // files
+  implicit val fileStatusFormat: Format[File.Status] = enumFormat(
+    File.Status.Deleting,
+    File.Status.Available,
+    File.Status.Processing,
+    File.Status.ProcessingFailed,
+  )
+  implicit val fileFormat: Format[File] = Json.format[File]
 }

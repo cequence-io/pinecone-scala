@@ -69,6 +69,14 @@ class PineconeAssistantServiceImpl(
       endPointParam = Some(name)
     ).map(handleDeleteResponse)
 
+  override def uploadFile(assistantName: String): Future[File] = {
+    // TODO: file contents
+    execPOST(
+      EndPoint.files,
+      endPointParam = Some(assistantName)
+    ).map(_.asSafeJson[File])
+  }
+
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String

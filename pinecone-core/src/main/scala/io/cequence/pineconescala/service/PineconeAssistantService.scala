@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse}
+import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse, File}
 import io.cequence.wsclient.service.CloseableService
 
 import scala.concurrent.Future
@@ -40,5 +40,14 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
    * @return
    */
   def deleteAssistant(name: String): Future[DeleteResponse]
+
+  /**
+   * This operation uploads a file to a specified assistant.
+   *
+   * @param name The name of the base to upload files to.
+   * @return
+   */
+  def uploadFile(assistantName: String): Future[File]
+
 
 }
