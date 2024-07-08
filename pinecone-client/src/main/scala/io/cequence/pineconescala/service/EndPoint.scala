@@ -7,6 +7,7 @@ sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
 object EndPoint {
   case object assistants extends EndPoint("assistant/assistants")
+  case object chat extends EndPoint("assistant/chat")
   case object describe_index_stats extends EndPoint
   case object embed extends EndPoint
   case object files extends EndPoint("assistant/files")
@@ -60,6 +61,7 @@ object Tag {
   case object model extends Tag
   case object parameters extends Tag
   case object metadata extends Tag
+  case object messages extends Tag
 
   // TODO: move elsewhere
   def fromCreatePodBasedIndexSettings(

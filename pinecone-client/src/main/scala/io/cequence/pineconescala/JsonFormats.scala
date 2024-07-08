@@ -1,5 +1,6 @@
 package io.cequence.pineconescala
 
+import io.cequence.pineconescala.domain.response.Choice.ChatCompletionMessage
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, EmbeddingsTruncate}
 import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
@@ -114,4 +115,20 @@ object JsonFormats {
     File.Status.ProcessingFailed,
   )
   implicit val fileFormat: Format[File] = Json.format[File]
+
+  // chat
+  implicit val chatCompletionMessageFormat: Format[ChatCompletionMessage] = Json.format[ChatCompletionMessage]
+  implicit val chatCompletionChoiceRoleFormat: Format[Choice.Role] = enumFormat(
+    Choice.Role.user,
+    Choice.Role.assistant
+  )
+  implicit val chatCompletionChoiceFinishReasonFormat: Format[Choice.FinishReason] = enumFormat(
+    Choice.FinishReason.Stop,
+    Choice.FinishReason.Length,
+    Choice.FinishReason.ToolCalls,
+    Choice.FinishReason.ContentFilter,
+    Choice.FinishReason.FunctionCall
+  )
+  implicit val chatCompletionChoiceFormat: Format[Choice] = Json.format[Choice]
+  implicit val chatCompletionModelFormat: Format[ChatCompletionResponse] = Json.format[ChatCompletionResponse]
 }
