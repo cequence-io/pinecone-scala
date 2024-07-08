@@ -96,4 +96,15 @@ object JsonFormats {
     EmbeddingsTruncate.None,
     EmbeddingsTruncate.End
   )
+
+  // assistants
+  implicit val assistantStatusFormat: Format[Assistant.Status] = enumFormat(
+    Assistant.Status.Initializing,
+    Assistant.Status.Failed,
+    Assistant.Status.Ready,
+    Assistant.Status.Terminating,
+  )
+  implicit val assistantFormat: Format[Assistant] = Json.format[Assistant]
+
+
 }

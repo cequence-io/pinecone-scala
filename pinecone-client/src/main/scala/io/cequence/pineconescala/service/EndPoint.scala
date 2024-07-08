@@ -6,6 +6,7 @@ import io.cequence.wsclient.domain.NamedEnumValue
 sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)
 
 object EndPoint {
+  case object assistants extends EndPoint("assistant/assistants")
   case object describe_index_stats extends EndPoint
   case object embed extends EndPoint
   case object query extends EndPoint
