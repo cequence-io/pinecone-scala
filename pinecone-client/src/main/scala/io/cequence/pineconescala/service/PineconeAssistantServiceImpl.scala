@@ -40,6 +40,19 @@ class PineconeAssistantServiceImpl(
     execGET(EndPoint.assistants).map(_.asSafeJsonArray[Assistant])
   }
 
+  override def createAssistant(
+    name: String,
+    metadata: Map[String, String]
+  ): Future[Assistant] = {
+    execPOST(
+      EndPoint.assistants,
+      bodyParams = jsonBodyParams(
+        Tag.name -> Some(name),
+        Tag.metadata -> Some(metadata)
+      )
+    ).map(_.asSafeJson[Assistant])
+  }
+
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String

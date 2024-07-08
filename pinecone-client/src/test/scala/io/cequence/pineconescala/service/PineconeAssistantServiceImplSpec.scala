@@ -34,6 +34,16 @@ class PineconeAssistantServiceImplSpec
       }
     }
 
+    "create assistant" in {
+      val service = assistantServiceBuilder
+      for {
+        assistant <- service.createAssistant("test-assistant", Map("key" -> "value"))
+      } yield {
+        assistant.name should be("test-assistant")
+        assistant.metadata should be(Map("key" -> "value"))
+      }
+    }
+
   }
 
 }

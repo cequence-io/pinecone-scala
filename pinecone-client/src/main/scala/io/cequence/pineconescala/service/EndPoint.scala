@@ -58,6 +58,7 @@ object Tag {
   case object inputs extends Tag
   case object model extends Tag
   case object parameters extends Tag
+  case object metadata extends Tag
 
   // TODO: move elsewhere
   def fromCreatePodBasedIndexSettings(

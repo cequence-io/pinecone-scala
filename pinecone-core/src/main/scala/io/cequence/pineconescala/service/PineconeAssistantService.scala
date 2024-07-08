@@ -14,4 +14,14 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
    */
   def listAssistants(): Future[Seq[Assistant]]
 
+  /**
+   * This operation deploys a Pinecone Assistant. This is where you specify the underlying training model,
+   * which cloud provider you would like to deploy with, and more.
+   *
+   * @param name
+   * @param metadata
+   * @return
+   */
+  def createAssistant(name: String, metadata: Map[String, String]): Future[Assistant]
+
 }
