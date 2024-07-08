@@ -44,6 +44,26 @@ class PineconeAssistantServiceImplSpec
       }
     }
 
+    "return None when describing a non-existent assistant" in {
+      val service = assistantServiceBuilder
+      for {
+        assistant <- service.describeAssistant("non-existent-assistant")
+      } yield {
+        assistant should be(None)
+      }
+    }
+
+    "return assistant when describing an existing assistant" in {
+      val service = assistantServiceBuilder
+      for {
+        _ <- service.createAssistant("test-assistant", Map("key" -> "value"))
+        assistant <- service.describeAssistant("test-assistant")
+      } yield {
+        assistant.get.name should be("test-assistant")
+        assistant.get.metadata should be(Map("key" -> "value"))
+      }
+    }
+
   }
 
 }

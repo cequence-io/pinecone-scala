@@ -53,6 +53,17 @@ class PineconeAssistantServiceImpl(
     ).map(_.asSafeJson[Assistant])
   }
 
+
+  override def describeAssistant(name: String): Future[Option[Assistant]] =
+    execGETRich(
+      EndPoint.assistants,
+      endPointParam = Some(name)
+    ).map { response =>
+      handleNotFoundAndError(response).map(
+        _.asSafeJson[Assistant]
+      )
+    }
+
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String
