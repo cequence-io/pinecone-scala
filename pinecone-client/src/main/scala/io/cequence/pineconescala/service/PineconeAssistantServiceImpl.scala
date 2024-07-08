@@ -2,8 +2,8 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.Assistant
-import io.cequence.wsclient.domain.WsRequestContext
+import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse}
+import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import play.api.libs.ws.StandaloneWSRequest
 import io.cequence.pineconescala.JsonFormats._
@@ -53,7 +53,6 @@ class PineconeAssistantServiceImpl(
     ).map(_.asSafeJson[Assistant])
   }
 
-
   override def describeAssistant(name: String): Future[Option[Assistant]] =
     execGETRich(
       EndPoint.assistants,
@@ -64,11 +63,27 @@ class PineconeAssistantServiceImpl(
       )
     }
 
+  override def deleteAssistant(name: String): Future[DeleteResponse] =
+    execDELETERich(
+      EndPoint.assistants,
+      endPointParam = Some(name)
+    ).map(handleDeleteResponse)
+
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String
   ): Nothing =
     throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
+
+  protected def handleDeleteResponse(response: RichResponse): DeleteResponse =
+    response.status.code match {
+      case 200 => DeleteResponse.Deleted
+      case 404 => DeleteResponse.NotFound
+      case _ =>
+        throw new PineconeScalaClientException(
+          s"Code ${response.status.code} : ${response.status.message}"
+        )
+    }
 
 }
 

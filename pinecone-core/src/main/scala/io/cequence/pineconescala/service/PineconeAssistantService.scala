@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.Assistant
+import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse}
 import io.cequence.wsclient.service.CloseableService
 
 import scala.concurrent.Future
@@ -32,5 +32,13 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
    * @return
    */
   def describeAssistant(name: String): Future[Option[Assistant]]
+
+  /**
+   * This operation deletes an existing assistant.
+   *
+   * @param name The name of the base to delete.
+   * @return
+   */
+  def deleteAssistant(name: String): Future[DeleteResponse]
 
 }
