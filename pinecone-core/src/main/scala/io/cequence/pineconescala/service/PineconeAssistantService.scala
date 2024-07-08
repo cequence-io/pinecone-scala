@@ -50,4 +50,12 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
   def uploadFile(assistantName: String): Future[File]
 
 
+  /**
+   *
+   * @param assistantName The name of the base to get file from.
+   * @param fileName The UUID of the file to be described.
+   * @return
+   */
+  def describeFile(assistantName: String, fileName: String): Future[Option[File]]
+
 }

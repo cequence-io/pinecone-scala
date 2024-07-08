@@ -2,10 +2,9 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse}
+import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse, File}
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
-import play.api.libs.ws.StandaloneWSRequest
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.service.PineconeInferenceServiceFactory.{
@@ -76,6 +75,20 @@ class PineconeAssistantServiceImpl(
       endPointParam = Some(assistantName)
     ).map(_.asSafeJson[File])
   }
+
+  override def describeFile(
+    assistantName: String,
+    fileName: String
+  ): Future[Option[File]] =
+    execGETRich(
+      EndPoint.files,
+      // FIXME: provide support for multiple end point params
+      endPointParam = Some(s"$assistantName/$fileName"),
+    ).map { response =>
+      handleNotFoundAndError(response).map(
+        _.asSafeJson[File]
+      )
+    }
 
   override protected def handleErrorCodes(
     httpCode: Int,
