@@ -2,7 +2,7 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, File, ListAssistantsResponse}
+import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, File, ListAssistantsResponse, ListFilesResponse}
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.JsonFormats._
@@ -35,9 +35,8 @@ class PineconeAssistantServiceImpl(
     explTimeouts = explicitTimeouts
   )
 
-  override def listAssistants(): Future[Seq[Assistant]] = {
+  override def listAssistants(): Future[Seq[Assistant]] =
     execGET(EndPoint.assistants).map(_.asSafeJson[ListAssistantsResponse]).map(_.assistants)
-  }
 
   override def createAssistant(
     name: String,
@@ -67,6 +66,9 @@ class PineconeAssistantServiceImpl(
       EndPoint.assistants,
       endPointParam = Some(name)
     ).map(handleDeleteResponse)
+
+  override def listFiles(assistantName: String): Future[Seq[File]] =
+    execGET(EndPoint.files, endPointParam = Some(assistantName)).map(_.asSafeJson[ListFilesResponse]).map(_.files)
 
   override def uploadFile(assistantName: String): Future[File] = {
     // TODO: file contents

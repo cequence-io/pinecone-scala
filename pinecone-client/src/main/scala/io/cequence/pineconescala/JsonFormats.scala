@@ -116,6 +116,7 @@ object JsonFormats {
     File.Status.ProcessingFailed,
   )
   implicit val fileFormat: Format[File] = Json.format[File]
+  implicit val listFilesResponseFormat: Format[ListFilesResponse] = Json.format[ListFilesResponse]
 
   // chat
   implicit val chatCompletionMessageFormat: Format[ChatCompletionMessage] = Json.format[ChatCompletionMessage]

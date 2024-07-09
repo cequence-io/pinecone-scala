@@ -43,6 +43,14 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
   def deleteAssistant(name: String): Future[DeleteResponse]
 
   /**
+   * This operation returns a list of all files in an assistant.
+   *
+   * @param assistantName The name of the assistant to get files of.
+   * @return
+   */
+  def listFiles(assistantName: String): Future[Seq[File]]
+
+  /**
    * This operation uploads a file to a specified assistant.
    *
    * @param name The name of the base to upload files to.
