@@ -4,9 +4,12 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.DeleteResponse
-import org.scalatest.GivenWhenThen
+import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
+import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.concurrent.Eventually.PatienceConfig
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.concurrent.ExecutionContext
@@ -16,15 +19,28 @@ class PineconeAssistantServiceImplSpec
     with GivenWhenThen
     with ServerlessFixtures
     with Matchers
-    with PineconeServiceConsts {
+    with PineconeServiceConsts with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 
+  private val assistantName = "test-assistant"
+  private val parameters = Map("key" -> "value")
+
   def assistantServiceBuilder: PineconeAssistantService =
     PineconeAssistantServiceFactory(serverlessConfig)
+
+  private def tearDown(service: PineconeAssistantService) = {
+    implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 10.seconds, interval = 100.millis)
+    service.deleteAssistant(assistantName).flatMap { _ =>
+      eventually {
+        val deletedF = service.describeAssistant(assistantName)
+        deletedF.map(_ should be (None))
+      }
+    }
+  }
 
   "Pinecone Assistant Service" when {
 
@@ -40,10 +56,11 @@ class PineconeAssistantServiceImplSpec
     "create assistant" in {
       val service = assistantServiceBuilder
       for {
-        assistant <- service.createAssistant("test-assistant", Map("key" -> "value"))
+        assistant <- service.createAssistant(assistantName, parameters)
+        _ <- tearDown(service)
       } yield {
-        assistant.name should be("test-assistant")
-        assistant.metadata should be(Map("key" -> "value"))
+        assistant.name should be(assistantName)
+        assistant.metadata should be(parameters)
       }
     }
 
@@ -59,24 +76,23 @@ class PineconeAssistantServiceImplSpec
     "return assistant when describing an existing assistant" in {
       val service = assistantServiceBuilder
       for {
-        _ <- service.createAssistant("test-assistant", Map("key" -> "value"))
-        assistant <- service.describeAssistant("test-assistant")
+        _ <- service.createAssistant(assistantName, parameters)
+        assistant <- service.describeAssistant(assistantName)
+        _ <- tearDown(service)
       } yield {
-        assistant.get.name should be("test-assistant")
-        assistant.get.metadata should be(Map("key" -> "value"))
+        assistant.get.name should be(assistantName)
+        assistant.get.metadata should be(parameters)
       }
     }
 
     "delete an existing assistant" in {
       val service = assistantServiceBuilder
       for {
-        _ <- service.createAssistant("test-assistant", Map("key" -> "value"))
-        deleteResponse <- service.deleteAssistant("test-assistant")
-        afterDelete <- service.describeAssistant("test-assistant")
-      } yield {
+        _ <- service.createAssistant(assistantName, parameters)
+        deleteResponse <- service.deleteAssistant(assistantName)
+        _ <- tearDown(service)
+      } yield
         deleteResponse should be(DeleteResponse.Deleted)
-        afterDelete should be(None)
-      }
     }
 
     "return NotFound when deleting a non-existent assistant" in {

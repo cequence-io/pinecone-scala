@@ -106,6 +106,7 @@ object JsonFormats {
     Assistant.Status.Terminating,
   )
   implicit val assistantFormat: Format[Assistant] = Json.format[Assistant]
+  implicit val listAssistantsResponseFormat: Format[ListAssistantsResponse] = Json.format[ListAssistantsResponse]
 
   // files
   implicit val fileStatusFormat: Format[File.Status] = enumFormat(

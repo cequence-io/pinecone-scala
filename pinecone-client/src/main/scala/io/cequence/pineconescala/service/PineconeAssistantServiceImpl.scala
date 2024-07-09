@@ -2,7 +2,7 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, File}
+import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, File, ListAssistantsResponse}
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.JsonFormats._
@@ -36,7 +36,7 @@ class PineconeAssistantServiceImpl(
   )
 
   override def listAssistants(): Future[Seq[Assistant]] = {
-    execGET(EndPoint.assistants).map(_.asSafeJsonArray[Assistant])
+    execGET(EndPoint.assistants).map(_.asSafeJson[ListAssistantsResponse]).map(_.assistants)
   }
 
   override def createAssistant(
