@@ -387,6 +387,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
         Right(new ServerlessIndexServiceImpl(apiKey, timeouts))
     }
 
+  // if we don't care whether it's pod-based or serverless
   implicit class FactoryImplicits(
     either: Either[PineconePodBasedIndexService, PineconeServerlessIndexService]
   ) {
