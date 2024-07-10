@@ -7,12 +7,9 @@ import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.service.PineconeInferenceServiceFactory.{configPrefix, loadTimeouts}
-import io.cequence.wsclient.JsonUtil.toJson
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
 import play.api.libs.json.Json
 
-import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class PineconeAssistantServiceImpl(
@@ -30,7 +27,7 @@ class PineconeAssistantServiceImpl(
   override protected val requestContext = WsRequestContext(
     authHeaders = Seq(
       ("Api-Key", apiKey),
-      ("X-Pinecone-API-Version", "2024-07")
+     // ("X-Pinecone-API-Version", "2024-07")
     ),
     explTimeouts = explicitTimeouts
   )
@@ -65,37 +62,6 @@ class PineconeAssistantServiceImpl(
     execDELETERich(
       EndPoint.assistants,
       endPointParam = Some(name)
-    ).map(handleDeleteResponse)
-
-  override def listFiles(assistantName: String): Future[Seq[File]] =
-    execGET(EndPoint.files, endPointParam = Some(assistantName)).map(_.asSafeJson[ListFilesResponse]).map(_.files)
-
-  override def uploadFile(assistantName: String): Future[File] = {
-    // TODO: file contents
-    execPOST(
-      EndPoint.files,
-      endPointParam = Some(assistantName)
-    ).map(_.asSafeJson[File])
-  }
-
-  override def describeFile(
-    assistantName: String,
-    fileId: UUID
-  ): Future[Option[File]] =
-    execGETRich(
-      EndPoint.files,
-      // FIXME: provide support for multiple end point params
-      endPointParam = Some(s"$assistantName/${fileId.toString}"),
-    ).map { response =>
-      handleNotFoundAndError(response).map(
-        _.asSafeJson[File]
-      )
-    }
-
-  override def deleteFile(assistantName: String, fileId: UUID): Future[DeleteResponse] =
-    execDELETERich(
-      EndPoint.files,
-      endPointParam = Some(s"$assistantName/${fileId.toString}")
     ).map(handleDeleteResponse)
 
   override def chatWithAssistant(assistantName: String, messages: Seq[String]): Future[ChatCompletionResponse] =
