@@ -109,13 +109,13 @@ object JsonFormats {
   implicit val listAssistantsResponseFormat: Format[ListAssistantsResponse] = Json.format[ListAssistantsResponse]
 
   // files
-  implicit val fileStatusFormat: Format[File.Status] = enumFormat(
-    File.Status.Deleting,
-    File.Status.Available,
-    File.Status.Processing,
-    File.Status.ProcessingFailed,
+  implicit val fileStatusFormat: Format[FileResponse.Status] = enumFormat(
+    FileResponse.Status.Deleting,
+    FileResponse.Status.Available,
+    FileResponse.Status.Processing,
+    FileResponse.Status.ProcessingFailed,
   )
-  implicit val fileFormat: Format[File] = Json.format[File]
+  implicit val fileFormat: Format[FileResponse] = Json.format[FileResponse]
   implicit val listFilesResponseFormat: Format[ListFilesResponse] = Json.format[ListFilesResponse]
 
   // chat

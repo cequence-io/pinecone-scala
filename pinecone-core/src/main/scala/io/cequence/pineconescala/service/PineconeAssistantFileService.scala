@@ -1,7 +1,8 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{DeleteResponse, File}
+import io.cequence.pineconescala.domain.response.{DeleteResponse, FileResponse}
 
+import java.io.File
 import java.util.UUID
 import scala.concurrent.Future
 
@@ -13,23 +14,25 @@ trait PineconeAssistantFileService {
    * @param assistantName The name of the assistant to get files of.
    * @return
    */
-  def listFiles(assistantName: String): Future[Seq[File]]
+  def listFiles(assistantName: String): Future[Seq[FileResponse]]
 
   /**
    * This operation uploads a file to a specified assistant.
    *
-   * @param name The name of the base to upload files to.
+   * @param file A file to upload.
+   * @param displayFileName The name of the file to be displayed.
+   * @param name The name of the assistant to upload file to.
    * @return
    */
-  def uploadFile(assistantName: String): Future[File]
+  def uploadFile(file: File, displayFileName: Option[String], assistantName: String): Future[FileResponse]
 
   /**
    *
-   * @param assistantName The name of the base to get file from.
+   * @param assistantName The name of the assistant to get file from.
    * @param fileId The UUID of the file to be described.
    * @return
    */
-  def describeFile(assistantName: String, fileId: UUID): Future[Option[File]]
+  def describeFile(assistantName: String, fileId: UUID): Future[Option[FileResponse]]
 
   /**
    *

@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, File}
+import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, FileResponse}
 import io.cequence.wsclient.service.CloseableService
 
 import java.util.UUID

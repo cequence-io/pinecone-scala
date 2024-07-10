@@ -3,12 +3,13 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.response.{DeleteResponse, File, ListFilesResponse}
+import io.cequence.pineconescala.domain.response.{DeleteResponse, FileResponse, ListFilesResponse}
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.JsonFormats._
 
+import java.io.File
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,30 +33,30 @@ class PineconeAssistantFileServiceImpl(
     explTimeouts = explicitTimeouts
   )
 
-  override def listFiles(assistantName: String): Future[Seq[File]] =
+  override def listFiles(assistantName: String): Future[Seq[FileResponse]] =
     execGET(EndPoint.files, endPointParam = Some(assistantName))
       .map(_.asSafeJson[ListFilesResponse])
       .map(_.files)
 
-  override def uploadFile(assistantName: String): Future[File] = {
-    // TODO: file contents
-    execPOST(
+  override def uploadFile(file: File, displayFileName: Option[String], assistantName: String): Future[FileResponse] = {
+    execPOSTMultipart(
       EndPoint.files,
-      endPointParam = Some(assistantName)
-    ).map(_.asSafeJson[File])
+      endPointParam = Some(assistantName),
+      fileParams = Seq((Tag.file, file, displayFileName)),
+    ).map(_.asSafeJson[FileResponse])
   }
 
   override def describeFile(
     assistantName: String,
     fileId: UUID
-  ): Future[Option[File]] =
+  ): Future[Option[FileResponse]] =
     execGETRich(
       EndPoint.files,
       // FIXME: provide support for multiple end point params
       endPointParam = Some(s"$assistantName/${fileId.toString}")
     ).map { response =>
       handleNotFoundAndError(response).map(
-        _.asSafeJson[File]
+        _.asSafeJson[FileResponse]
       )
     }
 

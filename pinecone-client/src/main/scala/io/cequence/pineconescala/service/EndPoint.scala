@@ -62,6 +62,7 @@ object Tag {
   case object parameters extends Tag
   case object metadata extends Tag
   case object messages extends Tag
+  case object file extends Tag
 
   // TODO: move elsewhere
   def fromCreatePodBasedIndexSettings(

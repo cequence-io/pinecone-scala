@@ -5,9 +5,9 @@ import io.cequence.wsclient.domain.EnumValue
 import java.time.OffsetDateTime
 import java.util.UUID
 
-final case class File(name: String, id: UUID, metadata: Map[String, String] = Map.empty, created_on: Option[OffsetDateTime], updated_on: Option[OffsetDateTime])
+final case class FileResponse(name: String, id: UUID, metadata: Map[String, String] = Map.empty, created_on: Option[OffsetDateTime], updated_on: Option[OffsetDateTime])
 
-object File {
+object FileResponse {
 
   sealed trait Status extends EnumValue
 
