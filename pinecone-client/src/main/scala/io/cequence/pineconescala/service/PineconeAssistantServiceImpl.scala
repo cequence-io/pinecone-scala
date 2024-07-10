@@ -27,7 +27,7 @@ class PineconeAssistantServiceImpl(
   override protected val requestContext = WsRequestContext(
     authHeaders = Seq(
       ("Api-Key", apiKey),
-     // ("X-Pinecone-API-Version", "2024-07")
+      ("X-Pinecone-API-Version", "2024-07")
     ),
     explTimeouts = explicitTimeouts
   )

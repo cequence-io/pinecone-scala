@@ -5,7 +5,13 @@ import io.cequence.wsclient.domain.EnumValue
 import java.time.OffsetDateTime
 
 final case class Assistant(name: String, metadata: Map[String, String] = Map.empty, status: Assistant.Status,
-                           created_on: Option[OffsetDateTime], updated_on: Option[OffsetDateTime])
+                           created_on: Option[OffsetDateTime], updated_on: Option[OffsetDateTime]) {
+  def hasFailed: Boolean = hasStatus(Assistant.Status.Failed)
+  def isInitializing: Boolean = hasStatus(Assistant.Status.Initializing)
+  def isReady: Boolean = hasStatus(Assistant.Status.Ready)
+  def isTerminating: Boolean = hasStatus(Assistant.Status.Terminating)
+  def hasStatus(status: Assistant.Status): Boolean = this.status == status
+}
 
 object Assistant {
 

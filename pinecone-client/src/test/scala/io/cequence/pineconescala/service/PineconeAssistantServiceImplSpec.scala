@@ -23,6 +23,7 @@ class PineconeAssistantServiceImplSpec
     with Matchers
     with PineconeServiceConsts
     with BeforeAndAfterEach
+    with EventuallyAssert
     with OptionValues {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -43,12 +44,6 @@ class PineconeAssistantServiceImplSpec
       eventuallyAssert(() => service.describeAssistant(assistantName))(_.isEmpty)
     }
   }
-
-  private def eventuallyAssert[A](f: () => Future[A])(check: A => Boolean)
-                                 (implicit config: PatienceConfig): Future[Assertion] =
-    eventually {
-      f().map(a => assert(check(a)))
-    }
 
   "Pinecone Assistant Service" when {
 

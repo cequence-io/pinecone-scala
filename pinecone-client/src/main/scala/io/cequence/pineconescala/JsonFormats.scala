@@ -4,9 +4,13 @@ import io.cequence.pineconescala.domain.response.Choice.ChatCompletionMessage
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, EmbeddingsTruncate}
 import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
-import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector}
+import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector, response}
 import io.cequence.wsclient.JsonUtil.enumFormat
-import play.api.libs.json.{Format, JsString, Json, Reads, Writes}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
+import java.time.OffsetDateTime
+import java.util.UUID
 
 object JsonFormats {
   // vector-stuff formats
@@ -86,7 +90,8 @@ object JsonFormats {
     Json.reads[EmbeddingsUsageInfo]
   implicit val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
   implicit val embeddingValuesReads: Reads[EmbeddingsValues] = Json.reads[EmbeddingsValues]
-  implicit val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] = Json.reads[GenerateEmbeddingsResponse]
+  implicit val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] =
+    Json.reads[GenerateEmbeddingsResponse]
 
   implicit val embeddingsInputTypeWrites: Writes[EmbeddingsInputType] = enumFormat(
     Query,
@@ -103,34 +108,64 @@ object JsonFormats {
     Assistant.Status.Initializing,
     Assistant.Status.Failed,
     Assistant.Status.Ready,
-    Assistant.Status.Terminating,
+    Assistant.Status.Terminating
   )
-  implicit val assistantFormat: Format[Assistant] = Json.format[Assistant]
-  implicit val listAssistantsResponseFormat: Format[ListAssistantsResponse] = Json.format[ListAssistantsResponse]
+  implicit val assistantFormat: Format[Assistant] = {
+    val reads: Reads[Assistant] = (
+      (__ \ "name").read[String] and
+        (__ \ "metadata").readWithDefault[Map[String, String]](Map.empty[String, String]) and
+        (__ \ "status").read[Assistant.Status] and
+        (__ \ "created_on").readNullable[OffsetDateTime] and
+        (__ \ "updated_on").readNullable[OffsetDateTime]
+    )(Assistant.apply _)
+
+    val writes: Writes[Assistant] = Json.writes[Assistant]
+    Format(reads, writes)
+  }
+
+  implicit val listAssistantsResponseFormat: Format[ListAssistantsResponse] =
+    Json.format[ListAssistantsResponse]
 
   // files
   implicit val fileStatusFormat: Format[FileResponse.Status] = enumFormat(
     FileResponse.Status.Deleting,
     FileResponse.Status.Available,
     FileResponse.Status.Processing,
-    FileResponse.Status.ProcessingFailed,
+    FileResponse.Status.ProcessingFailed
   )
-  implicit val fileFormat: Format[FileResponse] = Json.format[FileResponse]
-  implicit val listFilesResponseFormat: Format[ListFilesResponse] = Json.format[ListFilesResponse]
+  implicit val fileFormat: Format[FileResponse] = {
+    val reads: Reads[FileResponse] = (
+      (__ \ "name").read[String] and
+        (__ \ "id").read[UUID] and
+        (__ \ "metadata").readWithDefault[Map[String, String]](Map.empty[String, String]) and
+        (__ \ "created_on").readNullable[OffsetDateTime] and
+        (__ \ "updated_on").readNullable[OffsetDateTime] and
+        (__ \ "status").read[response.FileResponse.Status]
+    )(FileResponse.apply _)
+
+    val writes: Writes[FileResponse] = Json.writes[FileResponse]
+    Format(reads, writes)
+  }
+
+  implicit val listFilesResponseFormat: Format[ListFilesResponse] =
+    Json.format[ListFilesResponse]
 
   // chat
-  implicit val chatCompletionMessageFormat: Format[ChatCompletionMessage] = Json.format[ChatCompletionMessage]
+  implicit val chatCompletionMessageFormat: Format[ChatCompletionMessage] =
+    Json.format[ChatCompletionMessage]
   implicit val chatCompletionChoiceRoleFormat: Format[Choice.Role] = enumFormat(
     Choice.Role.user,
     Choice.Role.assistant
   )
-  implicit val chatCompletionChoiceFinishReasonFormat: Format[Choice.FinishReason] = enumFormat(
-    Choice.FinishReason.Stop,
-    Choice.FinishReason.Length,
-    Choice.FinishReason.ToolCalls,
-    Choice.FinishReason.ContentFilter,
-    Choice.FinishReason.FunctionCall
-  )
+  implicit val chatCompletionChoiceFinishReasonFormat: Format[Choice.FinishReason] =
+    enumFormat(
+      Choice.FinishReason.Stop,
+      Choice.FinishReason.Length,
+      Choice.FinishReason.ToolCalls,
+      Choice.FinishReason.ContentFilter,
+      Choice.FinishReason.FunctionCall
+    )
   implicit val chatCompletionChoiceFormat: Format[Choice] = Json.format[Choice]
-  implicit val chatCompletionModelFormat: Format[ChatCompletionResponse] = Json.format[ChatCompletionResponse]
+  implicit val chatCompletionModelFormat: Format[ChatCompletionResponse] =
+    Json.format[ChatCompletionResponse]
 }
