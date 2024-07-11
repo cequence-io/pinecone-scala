@@ -10,7 +10,9 @@ import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.domain.WsRequestContext
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.WSClientEngine
+import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
+import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,20 +28,24 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 private class PineconeVectorServiceImpl(
   apiKey: String,
-  override val coreUrl: String,
+  coreUrl: String,
   explicitTimeouts: Option[Timeouts] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends PineconeVectorService
-    with WSRequestHelper {
+    with WSClientWithEngine {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected val requestContext = WsRequestContext(
-    authHeaders = Seq(("Api-Key", apiKey)),
-    explTimeouts = explicitTimeouts
+  // we use play-ws backend
+  override protected val engine: WSClientEngine = PlayWSClientEngine(
+    coreUrl,
+    requestContext =  WsRequestContext(
+      authHeaders = Seq(("Api-Key", apiKey)),
+      explTimeouts = explicitTimeouts
+    )
   )
 
   override def describeIndexStats: Future[IndexStats] =

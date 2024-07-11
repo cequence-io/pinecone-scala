@@ -6,16 +6,15 @@ import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.IndexSettings.{
-  CreatePodBasedIndexSettings,
-  CreateServerlessIndexSettings
-}
+import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.{WSClientEngine, WSClientWithEngineBase}
+import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
+import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import play.api.libs.json.JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,12 +28,10 @@ private final class ServerlessIndexServiceImpl(
 ) extends PineconeIndexServiceImpl[CreateServerlessIndexSettings](
       apiKey,
       None,
+      coreUrl = "https://api.pinecone.io/",
       explTimeouts
     )(ec, materializer)
     with PineconeServerlessIndexService {
-
-  override protected val coreUrl: String =
-    "https://api.pinecone.io/"
 
   override protected def indexesEndpoint: EndPoint = EndPoint.indexes
 
@@ -90,12 +87,10 @@ private final class PineconePodPineconeBasedImpl(
 ) extends PineconeIndexServiceImpl[CreatePodBasedIndexSettings](
       apiKey,
       Some(environment),
+      coreUrl = s"https://controller.${environment.environment}.pinecone.io/",
       explTimeouts
     )(ec, materializer)
     with PineconePodBasedIndexService {
-
-  override protected val coreUrl =
-    s"https://controller.${environment.environment}.pinecone.io/"
 
   override protected def indexesEndpoint: EndPoint = EndPoint.databases
 
@@ -198,19 +193,24 @@ private final class PineconePodPineconeBasedImpl(
 abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   apiKey: String,
   environment: Option[PodEnv],
+  coreUrl: String,
   explicitTimeouts: Option[Timeouts] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends PineconeIndexService[S]
-    with WSRequestHelper {
+    with WSClientWithEngine {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  override protected val requestContext = WsRequestContext(
-    authHeaders = Seq(("Api-Key", apiKey)),
-    explTimeouts = explicitTimeouts
+  // we use play-ws backend
+  override protected val engine: WSClientEngine = PlayWSClientEngine(
+    coreUrl,
+    requestContext =  WsRequestContext(
+      authHeaders = Seq(("Api-Key", apiKey)),
+      explTimeouts = explicitTimeouts
+    )
   )
 
   def isPodBasedIndex: Boolean = environment.isDefined
