@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{DeleteResponse, FileResponse}
+import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, DeleteResponse, FileResponse}
 
 import java.io.File
 import java.util.UUID
@@ -41,5 +41,16 @@ trait PineconeAssistantFileService {
    * @return
    */
   def deleteFile(assistantName: String, fileId: UUID): Future[DeleteResponse]
+
+
+  /**
+   * This operation queries the completions endpoint of a Pinecone Assistant.
+   * For guidance and examples, see the chat with assistant guide.
+   *
+   * @param assistantName The name of the assistant to be described.
+   * @param messages An array of objects that represent the messages in a conversation.
+   * @return The ChatCompletionModel describes the response format of a chat request
+   */
+  def chatWithAssistant(assistantName: String, messages: Seq[String]): Future[ChatCompletionResponse]
 
 }

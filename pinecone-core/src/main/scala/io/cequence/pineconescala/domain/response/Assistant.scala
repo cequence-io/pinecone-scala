@@ -25,3 +25,5 @@ object Assistant {
   }
 
 }
+
+final case class UserMessage(content: String)

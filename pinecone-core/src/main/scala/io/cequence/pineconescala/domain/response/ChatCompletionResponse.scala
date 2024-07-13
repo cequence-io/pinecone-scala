@@ -1,17 +1,9 @@
 package io.cequence.pineconescala.domain.response
 
 import io.cequence.pineconescala.domain.response.Choice.{ChatCompletionMessage, FinishReason}
+import io.cequence.wsclient.domain.{EnumValue, NamedEnumValue}
 
-/**
- * @param id
- * @param model
- *   The name of the assistant returning the response.
- */
-final case class ChatCompletionResponse(
-  id: String,
-  model: String,
-  messages: Seq[Choice]
-)
+final case class ChatCompletionResponse(id: String, model: String, choices: Seq[Choice])
 
 final case class Choice(
   finish_reason: FinishReason,
@@ -22,9 +14,9 @@ final case class Choice(
 object Choice {
   final case class ChatCompletionMessage(role: Role, content: String)
 
-  sealed trait FinishReason
+  sealed trait FinishReason extends EnumValue
   object FinishReason {
-    case object Stop extends FinishReason
+    case object Stop extends NamedEnumValue("stop") with FinishReason
     case object Length extends FinishReason
     case object ToolCalls extends FinishReason
     case object ContentFilter extends FinishReason

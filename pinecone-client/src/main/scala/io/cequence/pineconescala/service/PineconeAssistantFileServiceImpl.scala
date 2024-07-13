@@ -3,11 +3,12 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.response.{DeleteResponse, FileResponse, ListFilesResponse}
+import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, DeleteResponse, FileResponse, ListFilesResponse, UserMessage}
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
 import io.cequence.pineconescala.JsonFormats._
+import play.api.libs.json.Json
 
 import java.io.File
 import java.util.UUID
@@ -68,6 +69,16 @@ class PineconeAssistantFileServiceImpl(
       EndPoint.files,
       endPointParam = Some(s"$assistantName/${fileId.toString}")
     ).map(handleDeleteResponse)
+
+  override def chatWithAssistant(assistantName: String, messages: Seq[String]): Future[ChatCompletionResponse] =
+    execPOST(
+      EndPoint.chat,
+      // FIXME: provide support for end point param followed by URL suffix
+      endPointParam = Some(s"$assistantName/chat/completions"),
+      bodyParams = jsonBodyParams(
+        Tag.messages -> Some(Json.toJson(messages.map(UserMessage)))
+      )
+    ).map(_.asSafeJson[ChatCompletionResponse])
 
   override protected def handleErrorCodes(
     httpCode: Int,

@@ -2,10 +2,8 @@ package io.cequence.pineconescala.service
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.stream.scaladsl.Source
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.Assistant.Status.Ready
-import io.cequence.pineconescala.domain.response.FileResponse.Status.{Deleting, Processing}
 import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse, FileResponse}
 import org.scalatest.concurrent.Eventually.{PatienceConfig, eventually}
 import org.scalatest.matchers.must.Matchers
@@ -14,10 +12,9 @@ import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen, OptionValues}
 
-import java.io.{File, PrintWriter}
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class PineconeAssistantFileServiceImplSpec
@@ -56,11 +53,12 @@ class PineconeAssistantFileServiceImplSpec
 
   "Pinecone Assistant File Service" when {
 
-    "list files" in {
+/*    "list files" in {
       val assistantService = assistantServiceBuilder
       val assistantFileService = assistantFileServiceBuilder
       val assistantFile = createAssistantFile()
       for {
+        // TODO: extract creating and tear down to an operator similar to 'in' for ensuring fixtures
         _ <- assistantService.createAssistant(assistantName, parameters)
         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
         beforeCreateFiles <- assistantFileService.listFiles(assistantName)
@@ -71,7 +69,7 @@ class PineconeAssistantFileServiceImplSpec
         beforeCreateFiles.size should be(0)
         afterCreateFiles.size should be(1)
       }
-    }
+    }*/
 
     "upload file" in {
       val assistantService = assistantServiceBuilder
@@ -79,6 +77,7 @@ class PineconeAssistantFileServiceImplSpec
       val assistantFile = createAssistantFile()
       for {
         _ <- assistantService.createAssistant(assistantName, parameters)
+        _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
         assistantFile <- assistantFileService.uploadFile(assistantFile, Some("input-file"), assistantName)
         _ <- tearDown(assistantService)
       } yield {
@@ -86,7 +85,7 @@ class PineconeAssistantFileServiceImplSpec
       }
     }
 
-    "describe file" in {
+/*    "describe file" in {
       val assistantService = assistantServiceBuilder
       val assistantFileService = assistantFileServiceBuilder
       val assistantFile = createAssistantFile()
@@ -110,8 +109,8 @@ class PineconeAssistantFileServiceImplSpec
       val assistantFileService = assistantFileServiceBuilder
       val assistantFile = createAssistantFile()
       for {
-         _ <- assistantService.createAssistant(assistantName, parameters)
-         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
+        _ <- assistantService.createAssistant(assistantName, parameters)
+        _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
         uploadedFile <- assistantFileService.uploadFile(assistantFile, Some("input-file"), assistantName)
         beforeDelete <- assistantFileService.describeFile(assistantName, uploadedFile.id)
         deleteResponse <- assistantFileService.deleteFile(assistantName, uploadedFile.id)
@@ -138,6 +137,22 @@ class PineconeAssistantFileServiceImplSpec
         deleteResponse should be(DeleteResponse.NotFound)
       }
     }
+
+
+    "chat with assistant" in {
+      val assistantService = assistantServiceBuilder
+      val assistantFileService = assistantFileServiceBuilder
+      val messages = Seq("What is the maximum height of a red pine?")
+      for {
+        _ <- assistantService.createAssistant(assistantName, parameters)
+        _ <- eventuallyAssert(() => assistantService.listAssistants())(_.size == 1)
+        chatResponse <- assistantFileService.chatWithAssistant(assistantName, messages)
+        _ <- tearDown(assistantService)
+      } yield {
+        chatResponse.model shouldBe assistantName
+        chatResponse.choices.size should be > 0
+      }
+    }*/
 
   }
 

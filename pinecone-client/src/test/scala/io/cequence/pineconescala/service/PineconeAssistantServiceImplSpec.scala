@@ -5,16 +5,14 @@ import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.Assistant.Status.Terminating
 import io.cequence.pineconescala.domain.response.DeleteResponse
-import org.scalatest.{Assertion, BeforeAndAfterEach, GivenWhenThen, OptionValues}
-import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.{BeforeAndAfterEach, GivenWhenThen, OptionValues}
 import org.scalatest.concurrent.Eventually.PatienceConfig
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatest.wordspec.AsyncWordSpec
 
-import scala.Console.println
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class PineconeAssistantServiceImplSpec
     extends AsyncWordSpec
@@ -53,13 +51,12 @@ class PineconeAssistantServiceImplSpec
     "list assistants" in {
       val service = assistantServiceBuilder
       for {
-        beforeCreateAssistants <- service.listAssistants()
+        beforeCreateAssistant <- service.listAssistants()
         _ <- service.createAssistant(assistantName, parameters)
         _ <- eventuallyAssert(() => service.listAssistants())(_.size == 1)
         _ <- tearDown(service)
       } yield {
-        beforeCreateAssistants.size should be(0)
-        // afterCreateAssistants.size should be(1)
+        beforeCreateAssistant.size should be(0)
       }
     }
 
