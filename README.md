@@ -7,6 +7,8 @@ This is an intuitive async Scala client for Pinecone API supporting all the avai
 * **Collection Operations**: [listCollections](https://docs.pinecone.io/reference/list_collections), [createCollection](https://docs.pinecone.io/reference/create_collection), [describeCollection](https://docs.pinecone.io/reference/describe_collection), and [deleteCollection](https://docs.pinecone.io/reference/delete_collection)
 * **Index Operations**: [listIndexes](https://docs.pinecone.io/reference/list_indexes), [creatIndex](https://docs.pinecone.io/reference/create_index), [describeIndex](https://docs.pinecone.io/reference/describe_index), [deleteIndex](https://docs.pinecone.io/reference/delete_index), and [configureIndex](https://docs.pinecone.io/reference/configure_index)
 * **Inference Operations**: [embedData](https://docs.pinecone.io/reference/api/inference/generate-embeddings)
+* **Assistant Operations**:  [listAssistants](https://docs.pinecone.io/reference/api/assistant/list-assistants), [createAssistant](https://docs.pinecone.io/reference/api/assistant/create-assistant), [describeAssistant](https://docs.pinecone.io/reference/api/assistant/describe-assistant), [deleteAssistant](https://docs.pinecone.io/reference/api/assistant/delete-assistant), [listFiles](https://https://docs.pinecone.io/reference/api/assistant/list-files), [uploadFile](https://docs.pinecone.io/reference/api/assistant/create-file), [describeFile](https://docs.pinecone.io/reference/api/assistant/describe-file), [deleteFile](https://docs.pinecone.io/reference/api/assistant/delete-file), [chatWithAnAssistant](https://docs.pinecone.io/reference/api/assistant/chat-completion-assistant)
+  - these operations are provided by two services: `PineconeAssistantService` and `PineconeAssistantFileService`
 
 Note that in order to be consistent with the Pinecone API naming, the service function names match exactly the API endpoint titles/descriptions with camelcase.
 Also, we aimed the lib to be self-contained with the fewest dependencies possible therefore we ended up using only two libs `play-ahc-ws-standalone` and `play-ws-standalone-json` (at the top level).  
@@ -107,35 +109,66 @@ With config
 Directly with api-key
 ```scala
   val service = PineconeInferenceServiceFactory(
-   apiKey = "your_api_key"
+    apiKey = "your_api_key"
   )
 ```
 
 - Custom config
 ```scala
   val config = ConfigFactory.load("path_to_my_custom_config")
-  PineconeVectorServiceFactory("index_name", config).map { service =>
-    val service = serviceOption.getOrElse(
-      throw new Exception(s"Index with a given name does not exist.")
-    )
-    // do something with the service
-  }
+  PineconeInferenceServiceFactory("index_name", config)
 ```
 
-- Without config
+**Id. Obtaining `PineconeAssistantService`**
+
+
+- With config
 
 ```scala
-  PineconeVectorServiceFactory(
-    apiKey = "your_api_key",
-    indexName = "index_name", // e.g. "auto-gpt"
-    pineconeIndexService = pineconeIndexService // index service to be used to find the index host URL 
-  ).map { serviceOption =>
-    val service = serviceOption.getOrElse(
-      throw new Exception(s"Index with a given name does not exist.")
-    )
-    // do something with the service
-  }
+    val config = ConfigFactory.load("path_to_my_custom_config")
+    val service = PineconeAssistantServiceFactory(config)
 ```
+
+- Directly with api-key
+
+```scala
+  val service = PineconeAssistantServiceFactory(
+    apiKey = "your_api"
+  )
+```
+
+- Custom config
+
+```scala
+  val config = ConfigFactory.load("path_to_my_custom_config")
+  PineconeAssistantServiceFactory(config)
+```
+
+**Ie. Obtaining `PineconeAssistantFileService`**
+
+- With config
+
+```scala
+    val config = ConfigFactory.load("path_to_my_custom_config")
+    val service = PineconeAssistantFileServiceFactory(config)
+```
+
+- Directly with api-key
+
+```scala
+  val service = PineconeAssistantFileServiceFactory(
+    apiKey = "your_api"
+  )
+```
+
+- Custom config
+
+```scala
+  val config = ConfigFactory.load("path_to_my_custom_config")
+  PineconeAssistantFileServiceFactory(config)
+```
+  
+
 
 **II. Calling functions**
 
@@ -403,6 +436,98 @@ Examples:
   }
   
 }
+```
+
+** Assistant Operations**
+
+- List assistants
+
+```scala
+  pineconeAssistantService.listAssistants.map(assistants =>
+    println(assistants.mkString(", "))
+  )
+```
+
+- Create assistant
+
+```scala
+  import io.cequence.pineconescala.domain.response.CreateResponse
+
+  pineconeAssistantService.createAssistant(
+    name = "assistant_name",
+    description = "assistant_description",
+    assistantType = "assistant_type"
+  ).map(
+    _ match {
+      case CreateResponse.Created => println("Assistant successfully created.")
+      case CreateResponse.BadRequest => println("Assistant creation failed. Request exceeds quota or an invalid assistant name.")
+      case CreateResponse.AlreadyExists => println("Assistant with a given name already exists.")
+    }
+  )
+```
+
+- Describe assistant
+
+```scala
+  pineconeAssistantService.describeAssistant("assistant_name").map(assistant =>
+    // if not found, assistant will be None
+    println(assistant)
+  )
+```
+
+- Delete assistant
+
+```scala
+  import io.cequence.pineconescala.domain.response.DeleteResponse
+
+  pineconeAssistantService.deleteAssistant("assistant_name").map(
+    _ match {
+      case DeleteResponse.Deleted => println("Assistant successfully deleted.")
+      case DeleteResponse.NotFound => println("Assistant with a given name not found.")
+    }
+  )
+```
+
+- List assistant files
+
+```scala
+  pineconeAssistantService.listFiles("assistant_name").map(files =>
+    println(files.mkString(", "))
+  )
+```
+
+- Upload assistant file
+
+```scala
+  import io.cequence.pineconescala.domain.response.CreateResponse
+
+  pineconeAssistantService.uploadFile(
+    assistantName = "assistant_name",
+    filePath = "path_to_file"
+  ).map(
+    _ match {
+      case CreateResponse.Created => println("File successfully uploaded.")
+      case CreateResponse.BadRequest => println("File upload failed. Request exceeds quota or an invalid file path.")
+      case CreateResponse.AlreadyExists => println("File with a given name already exists.")
+    }
+  )
+```
+
+- Describe assistant file
+
+```scala
+  pineconeAssistantService.describeFile("assistant_name", "file_name").map(file =>
+    // if not found, file will be None
+    println(file)
+  )
+```
+
+- Chat with an assistant
+
+```scala
+  pineconeAssistantService.chatWithAnAssistant("assistant_name", "What is the maximum height of a red pine?").map(response =>
+    println(response)
+  )
 ```
 
 ## Demo
