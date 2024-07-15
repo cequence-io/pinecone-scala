@@ -1,30 +1,35 @@
 package io.cequence.pineconescala
 
+import io.cequence.pineconescala.domain.response.Choice.ChatCompletionMessage
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, EmbeddingsTruncate}
 import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
-import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector}
+import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector, response}
 import io.cequence.wsclient.JsonUtil.enumFormat
-import play.api.libs.json.{Format, JsString, Json, Reads, Writes}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
+import java.time.OffsetDateTime
+import java.util.UUID
 
 object JsonFormats {
   // vector-stuff formats
-  implicit val namespaceStatsFormat: Format[NamespaceStats] = Json.format[NamespaceStats]
-  implicit val indexStatsFormat: Format[IndexStats] = Json.format[IndexStats]
-  implicit val sparseVectorFormat: Format[SparseVector] = Json.format[SparseVector]
-  implicit val vectorFormat: Format[PVector] = Json.format[PVector]
-  implicit val matchFormat: Format[Match] = Json.format[Match]
-  implicit val queryResultFormat: Format[QueryResponse] = Json.format[QueryResponse]
-  implicit val fetchResponseFormat: Format[FetchResponse] = Json.format[FetchResponse]
-  implicit val vectorIdFormat: Format[VectorId] = Json.format[VectorId]
-  implicit val listVectorIdsPaginationFormat: Format[ListVectorIdsPagination] =
+  implicit lazy val namespaceStatsFormat: Format[NamespaceStats] = Json.format[NamespaceStats]
+  implicit lazy val indexStatsFormat: Format[IndexStats] = Json.format[IndexStats]
+  implicit lazy val sparseVectorFormat: Format[SparseVector] = Json.format[SparseVector]
+  implicit lazy val vectorFormat: Format[PVector] = Json.format[PVector]
+  implicit lazy val matchFormat: Format[Match] = Json.format[Match]
+  implicit lazy val queryResultFormat: Format[QueryResponse] = Json.format[QueryResponse]
+  implicit lazy val fetchResponseFormat: Format[FetchResponse] = Json.format[FetchResponse]
+  implicit lazy val vectorIdFormat: Format[VectorId] = Json.format[VectorId]
+  implicit lazy val listVectorIdsPaginationFormat: Format[ListVectorIdsPagination] =
     Json.format[ListVectorIdsPagination]
-  implicit val listVectorIdsResponseFormat: Format[ListVectorIdsResponse] =
+  implicit lazy val listVectorIdsResponseFormat: Format[ListVectorIdsResponse] =
     Json.format[ListVectorIdsResponse]
 
   // index/collection formats
-  implicit val collectionInfoFormat: Format[CollectionInfo] = Json.format[CollectionInfo]
-  implicit val indexStatusFormat: Format[IndexStatus] = {
+  implicit lazy val collectionInfoFormat: Format[CollectionInfo] = Json.format[CollectionInfo]
+  implicit lazy val indexStatusFormat: Format[IndexStatus] = {
     import IndexStatus._
     enumFormat[IndexStatus](
       Initializing,
@@ -35,7 +40,7 @@ object JsonFormats {
       InitializationFailed
     )
   }
-  implicit val podTypeFormat: Format[PodType] = {
+  implicit lazy val podTypeFormat: Format[PodType] = {
     import PodType._
     enumFormat[PodType](
       s1_x1,
@@ -52,7 +57,7 @@ object JsonFormats {
       p2_x8
     )
   }
-  implicit val metricFormat: Format[Metric] = {
+  implicit lazy val metricFormat: Format[Metric] = {
     import Metric._
     enumFormat[Metric](
       euclidean,
@@ -62,38 +67,113 @@ object JsonFormats {
   }
 
   // pod-based
-  implicit val indexConfigFormat: Format[PodBasedIndexConfig] =
+  implicit lazy val indexConfigFormat: Format[PodBasedIndexConfig] =
     Json.format[PodBasedIndexConfig]
-  implicit val indexDatabaseInfoFormat: Format[PodBasedIndexDatabaseInfo] =
+  implicit lazy val indexDatabaseInfoFormat: Format[PodBasedIndexDatabaseInfo] =
     Json.format[PodBasedIndexDatabaseInfo]
-  implicit val indexStatusInfoFormat: Format[PodBasedIndexStatusInfo] =
+  implicit lazy val indexStatusInfoFormat: Format[PodBasedIndexStatusInfo] =
     Json.format[PodBasedIndexStatusInfo]
-  implicit val indexInfoFormat: Format[PodBasedIndexInfo] = Json.format[PodBasedIndexInfo]
+  implicit lazy val indexInfoFormat: Format[PodBasedIndexInfo] = Json.format[PodBasedIndexInfo]
 
   // serverless
-  implicit val serverlessIndexStatusFormat: Format[ServerlessIndexStatus] =
+  implicit lazy val serverlessIndexStatusFormat: Format[ServerlessIndexStatus] =
     Json.format[ServerlessIndexStatus]
-  implicit val serverlessIndexSpecAuxFormat: Format[ServerlessIndexSpecAux] =
+  implicit lazy val serverlessIndexSpecAuxFormat: Format[ServerlessIndexSpecAux] =
     Json.format[ServerlessIndexSpecAux]
-  implicit val serverlessIndexSpecFormat: Format[ServerlessIndexSpec] =
+  implicit lazy val serverlessIndexSpecFormat: Format[ServerlessIndexSpec] =
     Json.format[ServerlessIndexSpec]
-  implicit val serverlessIndexInfoFormat: Format[ServerlessIndexInfo] =
+  implicit lazy val serverlessIndexInfoFormat: Format[ServerlessIndexInfo] =
     Json.format[ServerlessIndexInfo]
 
   // embeddings
-  implicit val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
+  implicit lazy val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
     Json.reads[EmbeddingsUsageInfo]
-  implicit val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
-  implicit val embeddingValuesReads: Reads[EmbeddingsValues] = Json.reads[EmbeddingsValues]
-  implicit val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] = Json.reads[GenerateEmbeddingsResponse]
+  implicit lazy val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
+  implicit lazy val embeddingValuesReads: Reads[EmbeddingsValues] = Json.reads[EmbeddingsValues]
+  implicit lazy val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] =
+    Json.reads[GenerateEmbeddingsResponse]
 
-  implicit val embeddingsInputTypeWrites: Writes[EmbeddingsInputType] = enumFormat(
+  implicit lazy val embeddingsInputTypeWrites: Writes[EmbeddingsInputType] = enumFormat(
     Query,
     Passage
   )
 
-  implicit val embeddingsTruncateWrites: Writes[EmbeddingsTruncate] = enumFormat(
+  implicit lazy val embeddingsTruncateWrites: Writes[EmbeddingsTruncate] = enumFormat(
     EmbeddingsTruncate.None,
     EmbeddingsTruncate.End
   )
+
+  // assistants
+  implicit lazy val assistantStatusFormat: Format[Assistant.Status] = enumFormat(
+    Assistant.Status.Initializing,
+    Assistant.Status.Failed,
+    Assistant.Status.Ready,
+    Assistant.Status.Terminating
+  )
+  implicit lazy val assistantFormat: Format[Assistant] = {
+    val reads: Reads[Assistant] = (
+      (__ \ "name").read[String] and
+        (__ \ "metadata").readWithDefault[Map[String, String]](Map.empty[String, String]) and
+        (__ \ "status").read[Assistant.Status] and
+        (__ \ "created_on").readNullable[OffsetDateTime] and
+        (__ \ "updated_on").readNullable[OffsetDateTime]
+    )(Assistant.apply _)
+
+    val writes: Writes[Assistant] = Json.writes[Assistant]
+    Format(reads, writes)
+  }
+
+  implicit lazy val listAssistantsResponseFormat: Format[ListAssistantsResponse] =
+    Json.format[ListAssistantsResponse]
+
+  // files
+  implicit lazy val fileStatusFormat: Format[FileResponse.Status] = enumFormat(
+    FileResponse.Status.Deleting,
+    FileResponse.Status.Available,
+    FileResponse.Status.Processing,
+    FileResponse.Status.ProcessingFailed
+  )
+  implicit lazy val fileFormat: Format[FileResponse] = {
+    val reads: Reads[FileResponse] = (
+      (__ \ "name").read[String] and
+        (__ \ "id").read[UUID] and
+        (__ \ "metadata").readWithDefault[Map[String, String]](Map.empty[String, String]) and
+        (__ \ "created_on").readNullable[OffsetDateTime] and
+        (__ \ "updated_on").readNullable[OffsetDateTime] and
+        (__ \ "status").read[response.FileResponse.Status]
+    )(FileResponse.apply _)
+
+    val writes: Writes[FileResponse] = Json.writes[FileResponse]
+    Format(reads, writes)
+  }
+
+  implicit lazy val listFilesResponseFormat: Format[ListFilesResponse] =
+    Json.format[ListFilesResponse]
+
+  // chat
+  implicit lazy val userMessagesFormat: Writes[UserMessage] =
+    Writes[UserMessage] { userMessage =>
+      Json.obj(
+        "role" -> "user",
+        "content" -> userMessage.content
+      )
+    }
+
+  implicit lazy val chatCompletionMessageFormat: Format[ChatCompletionMessage] =
+    Json.format[ChatCompletionMessage]
+  implicit lazy val chatCompletionChoiceRoleFormat: Format[Choice.Role] = enumFormat(
+    Choice.Role.user,
+    Choice.Role.assistant
+  )
+  implicit lazy val chatCompletionChoiceFinishReasonFormat: Format[Choice.FinishReason] =
+    enumFormat(
+      Choice.FinishReason.Stop,
+      Choice.FinishReason.Length,
+      Choice.FinishReason.ToolCalls,
+      Choice.FinishReason.ContentFilter,
+      Choice.FinishReason.FunctionCall
+    )
+  implicit lazy val chatCompletionChoiceFormat: Format[Choice] = Json.format[Choice]
+  implicit lazy val chatCompletionModelFormat: Format[ChatCompletionResponse] =
+    Json.format[ChatCompletionResponse]
 }

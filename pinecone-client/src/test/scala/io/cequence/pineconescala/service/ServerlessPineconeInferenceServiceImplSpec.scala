@@ -3,12 +3,12 @@ package io.cequence.pineconescala.service
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
+import org.scalatest.GivenWhenThen
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatest.wordspec.AsyncWordSpec
-import org.scalatest.GivenWhenThen
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ServerlessPineconeInferenceServiceImplSpec
     extends AsyncWordSpec
