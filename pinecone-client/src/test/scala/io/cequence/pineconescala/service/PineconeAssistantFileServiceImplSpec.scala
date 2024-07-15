@@ -15,7 +15,7 @@ import org.scalatest.{BeforeAndAfterEach, GivenWhenThen, OptionValues}
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PineconeAssistantFileServiceImplSpec
     extends AsyncWordSpec
@@ -53,32 +53,45 @@ class PineconeAssistantFileServiceImplSpec
 
   "Pinecone Assistant File Service" when {
 
-/*    "list files" in {
+    "list files" in {
       val assistantService = assistantServiceBuilder
       val assistantFileService = assistantFileServiceBuilder
       val assistantFile = createAssistantFile()
       for {
         // TODO: extract creating and tear down to an operator similar to 'in' for ensuring fixtures
-        _ <- assistantService.createAssistant(assistantName, parameters)
+        assistantInfoOption <- assistantService.describeAssistant(assistantName)
+        _ <- assistantInfoOption.map{_ =>
+          println(s"Assistant '${assistantName}' already exists, skipping creation.")
+          Future(())
+        }.getOrElse(
+          assistantService.createAssistant(assistantName, parameters)
+        )
         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
         beforeCreateFiles <- assistantFileService.listFiles(assistantName)
-        _ <- assistantFileService.uploadFile(assistantFile, Some("input-file"), assistantName)
+        _ <- assistantFileService.uploadFile(assistantFile, None, assistantName)
         afterCreateFiles <- assistantFileService.listFiles(assistantName)
         _ <- tearDown(assistantService)
       } yield {
+        println(afterCreateFiles.map(_.name).mkString("\n"))
         beforeCreateFiles.size should be(0)
         afterCreateFiles.size should be(1)
       }
-    }*/
+    }
 
     "upload file" in {
       val assistantService = assistantServiceBuilder
       val assistantFileService = assistantFileServiceBuilder
       val assistantFile = createAssistantFile()
       for {
-        _ <- assistantService.createAssistant(assistantName, parameters)
+        assistantInfoOption <- assistantService.describeAssistant(assistantName)
+        _ <- assistantInfoOption.map{_ =>
+          println(s"Assistant '${assistantName}' already exists, skipping creation.")
+          Future(())
+        }.getOrElse(
+          assistantService.createAssistant(assistantName, parameters)
+        )
         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
-        assistantFile <- assistantFileService.uploadFile(assistantFile, Some("input-file"), assistantName)
+        assistantFile <- assistantFileService.uploadFile(assistantFile, None, assistantName)
         _ <- tearDown(assistantService)
       } yield {
         assistantFile.status shouldBe FileResponse.Status.Processing

@@ -3,11 +3,19 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.Config
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, DeleteResponse, FileResponse, ListFilesResponse, UserMessage}
+import io.cequence.pineconescala.domain.response.{
+  ChatCompletionResponse,
+  DeleteResponse,
+  FileResponse,
+  ListFilesResponse,
+  UserMessage
+}
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import io.cequence.pineconescala.JsonFormats._
+import io.cequence.wsclient.service.WSClientEngine
+import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
 import play.api.libs.json.Json
 
 import java.io.File
@@ -21,17 +29,21 @@ class PineconeAssistantFileServiceImpl(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends PineconeAssistantFileService
-    with WSRequestHelper {
+    with WSClientWithEngine {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-  override val coreUrl: String = "https://prod-1-data.ke.pinecone.io/"
-  override protected val requestContext = WsRequestContext(
-    authHeaders = Seq(
-      ("Api-Key", apiKey)
-      // ("X-Pinecone-API-Version", "2024-07")
-    ),
-    explTimeouts = explicitTimeouts
+
+  // we use play-ws backend
+  override protected val engine: WSClientEngine = PlayWSClientEngine(
+    coreUrl = "https://prod-1-data.ke.pinecone.io/",
+    requestContext = WsRequestContext(
+      authHeaders = Seq(
+        ("Api-Key", apiKey)
+        // ("X-Pinecone-API-Version", "2024-07")
+      ),
+      explTimeouts = explicitTimeouts
+    )
   )
 
   override def listFiles(assistantName: String): Future[Seq[FileResponse]] =
@@ -39,11 +51,15 @@ class PineconeAssistantFileServiceImpl(
       .map(_.asSafeJson[ListFilesResponse])
       .map(_.files)
 
-  override def uploadFile(file: File, displayFileName: Option[String], assistantName: String): Future[FileResponse] = {
+  override def uploadFile(
+    file: File,
+    displayFileName: Option[String],
+    assistantName: String
+  ): Future[FileResponse] = {
     execPOSTMultipart(
       EndPoint.files,
       endPointParam = Some(assistantName),
-      fileParams = Seq((Tag.file, file, displayFileName)),
+      fileParams = Seq((Tag.file, file, displayFileName))
     ).map(_.asSafeJson[FileResponse])
   }
 
@@ -70,7 +86,10 @@ class PineconeAssistantFileServiceImpl(
       endPointParam = Some(s"$assistantName/${fileId.toString}")
     ).map(handleDeleteResponse)
 
-  override def chatWithAssistant(assistantName: String, messages: Seq[String]): Future[ChatCompletionResponse] =
+  override def chatWithAssistant(
+    assistantName: String,
+    messages: Seq[String]
+  ): Future[ChatCompletionResponse] =
     execPOST(
       EndPoint.chat,
       // FIXME: provide support for end point param followed by URL suffix
@@ -80,6 +99,7 @@ class PineconeAssistantFileServiceImpl(
       )
     ).map(_.asSafeJson[ChatCompletionResponse])
 
+  // TODO: we need more granular exceptions here
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String
@@ -95,7 +115,6 @@ class PineconeAssistantFileServiceImpl(
           s"Code ${response.status.code} : ${response.status.message}"
         )
     }
-
 }
 
 object PineconeAssistantFileServiceFactory extends PineconeServiceFactoryHelper {
@@ -123,5 +142,4 @@ object PineconeAssistantFileServiceFactory extends PineconeServiceFactoryHelper 
       timeouts = timeouts.toOption
     )
   }
-
 }

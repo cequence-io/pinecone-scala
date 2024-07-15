@@ -2,13 +2,21 @@ package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
 import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, ListAssistantsResponse, ListFilesResponse, UserMessage}
+import io.cequence.pineconescala.domain.response.{
+  Assistant,
+  ChatCompletionResponse,
+  DeleteResponse,
+  ListAssistantsResponse,
+  ListFilesResponse,
+  UserMessage
+}
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
-import io.cequence.wsclient.service.ws.{Timeouts, WSRequestHelper}
+import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
-import play.api.libs.json.Json
+import io.cequence.wsclient.service.WSClientEngine
+import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,17 +27,21 @@ class PineconeAssistantServiceImpl(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
 ) extends PineconeAssistantService
-    with WSRequestHelper {
+    with WSClientWithEngine {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-  override val coreUrl: String = "https://api.pinecone.io/"
-  override protected val requestContext = WsRequestContext(
-    authHeaders = Seq(
-      ("Api-Key", apiKey),
-      ("X-Pinecone-API-Version", "2024-07")
-    ),
-    explTimeouts = explicitTimeouts
+
+  // we use play-ws backend
+  override protected val engine: WSClientEngine = PlayWSClientEngine(
+    coreUrl = "https://api.pinecone.io/",
+    requestContext = WsRequestContext(
+      authHeaders = Seq(
+        ("Api-Key", apiKey),
+        ("X-Pinecone-API-Version", "2024-07")
+      ),
+      explTimeouts = explicitTimeouts
+    )
   )
 
   override def listAssistants(): Future[Seq[Assistant]] =
@@ -64,6 +76,7 @@ class PineconeAssistantServiceImpl(
       endPointParam = Some(name)
     ).map(handleDeleteResponse)
 
+  // TODO: we need more granular exceptions here
   override protected def handleErrorCodes(
     httpCode: Int,
     message: String
