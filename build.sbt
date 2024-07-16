@@ -15,6 +15,15 @@ lazy val core = (project in file("pinecone-core"))
 
 lazy val client = (project in file("pinecone-client")).dependsOn(core).aggregate(core)
 
+lazy val examples = (project in file("examples"))
+  .dependsOn(core, client)
+  .aggregate(core, client)
+
+
+lazy val openAiExamples = (project in file("openai-examples"))
+  .dependsOn(core, client)
+  .aggregate(core, client)
+
 // POM settings for Sonatype
 ThisBuild / homepage := Some(url("https://github.com/cequence-io/pinecone-scala"))
 
