@@ -3,6 +3,7 @@ package io.cequence.pineconeopenai.demo
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.openaiscala.service.OpenAIServiceFactory
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
 import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconeServiceConsts, PineconeVectorServiceFactory}
@@ -17,7 +18,7 @@ trait PineconeOpenAIDemoApp extends App with PineconeServiceConsts {
   // impl hook
   protected def exec: Future[_]
 
-  protected lazy val pineconeIndexService = PineconeIndexServiceFactory()
+  protected lazy val pineconeIndexService = PineconeIndexServiceFactory().asOne
   protected def createPineconeVectorService(indexName: String) =
     PineconeVectorServiceFactory(indexName).map(
       _.getOrElse(

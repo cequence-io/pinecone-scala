@@ -29,9 +29,9 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
 
   private val indexName = "openai"
   private val namespace = "default"
-  private val batchSize = 32                              // process everything in batches of 32
-  private val parallelism = 1                             // no rush, do it in sequence
-  private val indexSettings = DefaultSettings.CreateIndex // metric = cosine, pods = 1, podType = p1.x1
+  private val batchSize = 32                                      // process everything in batches of 32
+  private val parallelism = 1                                     // no rush, do it in sequence
+  private val indexSettings = DefaultSettings.CreatePodBasedIndex // metric = cosine, pods = 1, podType = p1.x1
 
   override protected def exec = {
     for {

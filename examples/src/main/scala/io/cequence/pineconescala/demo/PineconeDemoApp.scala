@@ -2,9 +2,10 @@ package io.cequence.pineconescala.demo
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
-import io.cequence.pineconescala.service.{PineconeIndexService, PineconeIndexServiceFactory, PineconeVectorService, PineconeVectorServiceFactory}
+import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconeVectorServiceFactory}
 
 trait PineconeDemoApp extends App {
 
@@ -16,7 +17,7 @@ trait PineconeDemoApp extends App {
   // impl hook
   protected def exec: Future[_]
 
-  protected lazy val pineconeIndexService = PineconeIndexServiceFactory()
+  protected lazy val pineconeIndexService = PineconeIndexServiceFactory().asOne
 
   protected def createPineconeVectorService(indexName: String) =
     PineconeVectorServiceFactory(indexName).map(
