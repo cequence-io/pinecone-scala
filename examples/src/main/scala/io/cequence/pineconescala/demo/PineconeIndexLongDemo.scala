@@ -19,7 +19,7 @@ object PineconeIndexLongDemo extends App {
   {
     for {
       pineconeIndexService <- Future(
-        PineconeIndexServiceFactory() // we wrap it in a Future just because of the recover block
+        PineconeIndexServiceFactory().left.get // we wrap it in a Future just because of the recover block
       )
 
       // create index

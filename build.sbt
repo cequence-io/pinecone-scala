@@ -19,7 +19,6 @@ lazy val examples = (project in file("examples"))
   .dependsOn(core, client)
   .aggregate(core, client)
 
-
 lazy val openAiExamples = (project in file("openai-examples"))
   .dependsOn(core, client)
   .aggregate(core, client)
@@ -60,3 +59,9 @@ ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 ThisBuild / sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 
 ThisBuild / publishTo := sonatypePublishToBundle.value
+
+inThisBuild(
+  List(
+    scalacOptions += "-Ywarn-unused",
+  )
+)
