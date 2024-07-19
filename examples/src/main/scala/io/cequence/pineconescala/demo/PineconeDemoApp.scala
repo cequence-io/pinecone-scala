@@ -17,7 +17,7 @@ trait PineconeDemoApp extends App {
   // impl hook
   protected def exec: Future[_]
 
-  protected lazy val pineconeIndexService = PineconeIndexServiceFactory().asOne
+  protected lazy val pineconeIndexService = PineconeIndexServiceFactory().left.get
 
   protected def createPineconeVectorService(indexName: String) =
     PineconeVectorServiceFactory(indexName).map(
