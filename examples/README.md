@@ -6,12 +6,14 @@ This is a ready-to-fork, example/demo project demonstrating how to use [Pinecone
 7 single-function demos are available:
 
 - [List Indexes](./src/main/scala/io/cequence/pineconescala/demo/ListIndexes.scala)
-- [Create Index](./src/main/scala/io/cequence/pineconescala/demo/CreateIndex.scala)
+- [Create Pod-Based Index](./src/main/scala/io/cequence/pineconescala/demo/CreatePodBasedIndex.scala)
+- [Create Serverless Index](./src/main/scala/io/cequence/pineconescala/demo/CreateServerlessIndex.scala)
 - [Describe Index](./src/main/scala/io/cequence/pineconescala/demo/DescribeIndex.scala)
 - [Delete Index](./src/main/scala/io/cequence/pineconescala/demo/DeleteIndex.scala)
 - [Upsert Vectors](./src/main/scala/io/cequence/pineconescala/demo/UpsertVectors.scala)
 - [Query Vectors](./src/main/scala/io/cequence/pineconescala/demo/QueryVectors.scala)
 - [Query Vectors By Filter](./src/main/scala/io/cequence/pineconescala/demo/QueryVectorsByFilter.scala)
+- [List Vector Ids](./src/main/scala/io/cequence/pineconescala/demo/ListVectorIds.scala)
 
 
 and two more complex (longer), one for each service:

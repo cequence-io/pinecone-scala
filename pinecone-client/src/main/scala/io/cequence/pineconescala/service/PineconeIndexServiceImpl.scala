@@ -4,15 +4,14 @@ import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
 import io.cequence.pineconescala.domain.settings._
-import io.cequence.pineconescala.domain.{Metric, PodType}
+import io.cequence.pineconescala.domain.PodType
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
-import io.cequence.wsclient.service.{WSClientEngine, WSClientWithEngineBase}
+import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import play.api.libs.json.JsValue
@@ -79,7 +78,7 @@ private final class ServerlessIndexServiceImpl(
 
 private final class PineconePodPineconeBasedImpl(
   apiKey: String,
-  environment: PodEnv,
+  environment: String,
   explTimeouts: Option[Timeouts] = None
 )(
   override implicit val ec: ExecutionContext,
@@ -87,7 +86,7 @@ private final class PineconePodPineconeBasedImpl(
 ) extends PineconeIndexServiceImpl[CreatePodBasedIndexSettings](
       apiKey,
       Some(environment),
-      coreUrl = s"https://controller.${environment.environment}.pinecone.io/",
+      coreUrl = s"https://controller.${environment}.pinecone.io/",
       explTimeouts
     )(ec, materializer)
     with PineconePodBasedIndexService {
@@ -192,7 +191,7 @@ private final class PineconePodPineconeBasedImpl(
  */
 abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   apiKey: String,
-  environment: Option[PodEnv],
+  environment: Option[String],
   coreUrl: String,
   explicitTimeouts: Option[Timeouts] = None
 )(
@@ -333,7 +332,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply(
     apiKey: String,
-    environment: PodEnv,
+    environment: String,
     timeouts: Option[Timeouts]
   )(
     implicit ec: ExecutionContext,
@@ -374,7 +373,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
 
   def apply(
     apiKey: String,
-    environment: Option[PodEnv],
+    environment: Option[String],
     timeouts: Option[Timeouts]
   )(
     implicit ec: ExecutionContext,

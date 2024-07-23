@@ -2,7 +2,6 @@ package io.cequence.pineconescala.service
 
 import com.typesafe.config.Config
 import io.cequence.wsclient.ConfigImplicits._
-import io.cequence.pineconescala.domain.IndexEnv.PodEnv
 import io.cequence.wsclient.service.ws.Timeouts
 
 trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
@@ -21,7 +20,7 @@ trait PineconeServiceFactoryHelper extends PineconeServiceConsts {
     )
   }
 
-  def loadPodEnv(config: Config): Option[PodEnv] =
-    config.optionalString(s"$configPrefix.environment").map(PodEnv)
+  def loadPodEnv(config: Config): Option[String] =
+    config.optionalString(s"$configPrefix.environment")
 
 }

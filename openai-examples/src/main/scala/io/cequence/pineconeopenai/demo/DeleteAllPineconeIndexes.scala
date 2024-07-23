@@ -7,7 +7,7 @@ import scala.concurrent.Future
  *
  * The following env. variables are expected:
  *  - PINECONE_SCALA_CLIENT_API_KEY
- *  - PINECONE_SCALA_CLIENT_ENV
+ *  - PINECONE_SCALA_CLIENT_ENV (optional) - only if pod-based index is to be used
  */
 object DeleteAllPineconeIndexes extends PineconeOpenAIDemoApp {
 

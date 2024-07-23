@@ -6,7 +6,7 @@ import io.cequence.openaiscala.domain.settings.CreateEmbeddingsSettings
 import io.cequence.pineconescala.domain.PVector
 import io.cequence.pineconescala.domain.response.CreateResponse
 import io.cequence.pineconescala.domain.settings.QuerySettings
-import io.cequence.pineconescala.service.PineconeVectorService
+import io.cequence.pineconescala.service.{PineconePodBasedIndexService, PineconeServerlessIndexService, PineconeVectorService}
 
 import scala.concurrent.Future
 import play.api.libs.json.Json
@@ -18,7 +18,7 @@ import play.api.libs.json.Json
  *
  * The following env. variables are expected:
  *  - PINECONE_SCALA_CLIENT_API_KEY
- *  - PINECONE_SCALA_CLIENT_ENV
+ *  - PINECONE_SCALA_CLIENT_ENV (optional) - only if pod-based index is to be used
  *  - OPENAI_SCALA_CLIENT_API_KEY
  *  - OPENAI_SCALA_CLIENT_ORG_ID (optional)
  *
@@ -31,7 +31,9 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
   private val namespace = "default"
   private val batchSize = 32                                      // process everything in batches of 32
   private val parallelism = 1                                     // no rush, do it in sequence
-  private val indexSettings = DefaultSettings.CreatePodBasedIndex // metric = cosine, pods = 1, podType = p1.x1
+
+  private val podBasedIndexSettings = DefaultSettings.CreatePodBasedIndex // metric = cosine, pods = 1, podType = p1.x1
+  private val serverlessIndexSettings = DefaultSettings.CreateServerlessIndex // metric = cosine, AWS, EU West1
 
   override protected def exec = {
     for {
@@ -50,24 +52,38 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
 
       // check if 'openai' index already exists (only create index if not)
       _ <- if (!indexNames.contains(indexName)) {
-        pineconeIndexService.createIndex(
-          indexName,
-          dimension = embeds(0).size,
-          settings = indexSettings
-        ).map(
-          _ match {
-            case CreateResponse.Created =>
-              println(s"Index '${indexName}' successfully created.")
-              println("Waiting 30 seconds for the index initialization to finish.")
-              Thread.sleep(30000)
+        {
+          pineconeIndexService match {
+            case service: PineconePodBasedIndexService =>
+              println("Creating a pod-based index.")
 
-            case CreateResponse.BadRequest =>
-              println(s"Index '${indexName}' creation failed. Request exceeds quota or an invalid index name.")
+              service.createIndex(
+                indexName,
+                dimension = embeds(0).size,
+                settings = podBasedIndexSettings
+              )
 
-            case CreateResponse.AlreadyExists =>
-              println(s"Index '${indexName}' with a given name already exists.")
+            case service: PineconeServerlessIndexService =>
+              println("Creating a serverless index.")
+
+              service.createIndex(
+                indexName,
+                dimension = embeds(0).size,
+                settings = serverlessIndexSettings
+              )
           }
-        )
+        }.map {
+          case CreateResponse.Created =>
+            println(s"Index '${indexName}' successfully created.")
+            println("Waiting 30 seconds for the index initialization to finish.")
+            Thread.sleep(30000)
+
+          case CreateResponse.BadRequest =>
+            println(s"Index '${indexName}' creation failed. Request exceeds quota or an invalid index name.")
+
+          case CreateResponse.AlreadyExists =>
+            println(s"Index '${indexName}' with a given name already exists.")
+        }
       } else
         Future(())
 
@@ -95,7 +111,7 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
           // create embeddings
           embedResponse <- openAIService.createEmbeddings(
             input = texts,
-            settings = CreateEmbeddingsSettings(ModelId.text_embedding_ada_002)
+            settings = CreateEmbeddingsSettings(ModelId.text_embedding_3_small)
           )
 
           embeds = embedResponse.data.map(_.embedding)

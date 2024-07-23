@@ -58,24 +58,26 @@ Then you can obtain a service (pod or serverless-based) in one of the following 
 - Default config (expects env. variable(s) to be set as defined in `Config` section)
 
 ```scala
-  val service = PineconeIndexServiceFactory()
+  import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
+
+  val service = PineconeIndexServiceFactory().asOne
 ```
 
 - Custom config
 ```scala
   val config = ConfigFactory.load("path_to_my_custom_config")
-  val service = PineconeIndexServiceFactory(config)
+  val service = PineconeIndexServiceFactory(config).asOne
 ```
 
-- Without config for pod-based service (with env)
+- Without config for pod-based service (with env) - creates an instance of `PineconePodBasedIndexService`
 ```scala
-  val service = PineconeIndexServiceFactory(
+  val service  = PineconeIndexServiceFactory(
     apiKey = "your_api_key",
-    environment = Some("your_env") // e.g. "northamerica-northeast1-gcp
+    environment = "your_env" // e.g. "northamerica-northeast1-gcp
   )
 ```
 
-- Without config for serverless service
+- Without config for serverless service - creates an instance of `PineconeServerlessIndexService`
 ```scala
   val service = PineconeIndexServiceFactory(
     apiKey = "your_api_key"
@@ -194,13 +196,11 @@ Examples:
   pineconeIndexService.createIndex(
     name = "auto-gpt-test",
     dimension = 1536
-  ).map(
-    _ match {
-      case CreateResponse.Created => println("Index successfully created.")
-      case CreateResponse.BadRequest => println("Index creation failed. Request exceeds quota or an invalid index name.")
-      case CreateResponse.AlreadyExists => println("Index with a given name already exists.")
-    }
-  )
+  ).map {
+    case CreateResponse.Created => println("Index successfully created.")
+    case CreateResponse.BadRequest => println("Index creation failed. Request exceeds quota or an invalid index name.")
+    case CreateResponse.AlreadyExists => println("Index with a given name already exists.")
+  }
 ```
 
 - Describe index
@@ -217,12 +217,10 @@ Examples:
 ```scala
   import io.cequence.pineconescala.domain.response.DeleteResponse
 
-  pineconeIndexService.deleteIndex("index_name").map(
-    _ match {
-      case DeleteResponse.Deleted => println("Index successfully deleted.")
-      case DeleteResponse.NotFound => println("Index with a given name not found.")
-    }
-  )
+  pineconeIndexService.deleteIndex("index_name").map {
+    case DeleteResponse.Deleted => println("Index successfully deleted.")
+    case DeleteResponse.NotFound => println("Index with a given name not found.")
+  }
 ```
 
 - Configure index
@@ -234,13 +232,11 @@ Examples:
     name = "index_name",
     replicas = Some(2),
     pod_type = Some(PodType.p1_x2)
-  ).map(deleteResponse =>
-    deleteResponse match {
-      case ConfigureIndexResponse.Updated => println("Index successfully updated.")
-      case ConfigureIndexResponse.BadRequestNotEnoughQuota => println("Index update failed. Not enough quota.")
-      case ConfigureIndexResponse.NotFound => println("Index with a given name not found.")
-    }
-  )
+  ).map { 
+    case ConfigureIndexResponse.Updated => println("Index successfully updated.")
+    case ConfigureIndexResponse.BadRequestNotEnoughQuota => println("Index update failed. Not enough quota.")
+    case ConfigureIndexResponse.NotFound => println("Index with a given name not found.")
+  }
 ```
 
 **Collection Operations**
@@ -261,13 +257,11 @@ Examples:
   pineconeIndexService.createCollection(
     name = "collection_name",
     source = "index_name"
-  ).map(
-    _ match {
-      case CreateResponse.Created => println("Collection successfully created.")
-      case CreateResponse.BadRequest => println("Collection creation failed. Request exceeds quota or an invalid collection name.")
-      case CreateResponse.AlreadyExists => println("Collection with a given name already exists.")
-    }
-  )
+  ).map {
+    case CreateResponse.Created => println("Collection successfully created.")
+    case CreateResponse.BadRequest => println("Collection creation failed. Request exceeds quota or an invalid collection name.")
+    case CreateResponse.AlreadyExists => println("Collection with a given name already exists.")
+  }
 ```
 
 - Describe collection
@@ -284,12 +278,10 @@ Examples:
 ```scala
   import io.cequence.pineconescala.domain.response.DeleteResponse
 
-  pineconeIndexService.deleteCollection("collection_name").map(
-    _ match {
-      case DeleteResponse.Deleted => println("Collection successfully deleted.")
-      case DeleteResponse.NotFound => println("Collection with a given name not found.")
-    }
-  )
+  pineconeIndexService.deleteCollection("collection_name").map {
+    case DeleteResponse.Deleted => println("Collection successfully deleted.")
+    case DeleteResponse.NotFound => println("Collection with a given name not found.")
+  }
 ```
 
 **Vector Operations**
@@ -431,11 +423,11 @@ Examples:
 - Generate embeddings
 
 ```scala
-  pineconeInferenceService.createEmbeddings(Seq("The quick brown fox jumped over the lazy dog")).map { embeddings =>
+  pineconeInferenceService.createEmbeddings(
+    Seq("The quick brown fox jumped over the lazy dog")
+  ).map { embeddings =>
     println(embeddings.data.mkString("\n"))
   }
-  
-}
 ```
 
 ** Assistant Operations**
@@ -457,13 +449,11 @@ Examples:
     name = "assistant_name",
     description = "assistant_description",
     assistantType = "assistant_type"
-  ).map(
-    _ match {
-      case CreateResponse.Created => println("Assistant successfully created.")
-      case CreateResponse.BadRequest => println("Assistant creation failed. Request exceeds quota or an invalid assistant name.")
-      case CreateResponse.AlreadyExists => println("Assistant with a given name already exists.")
-    }
-  )
+  ).map {
+    case CreateResponse.Created => println("Assistant successfully created.")
+    case CreateResponse.BadRequest => println("Assistant creation failed. Request exceeds quota or an invalid assistant name.")
+    case CreateResponse.AlreadyExists => println("Assistant with a given name already exists.")
+  }
 ```
 
 - Describe assistant
@@ -480,12 +470,10 @@ Examples:
 ```scala
   import io.cequence.pineconescala.domain.response.DeleteResponse
 
-  pineconeAssistantService.deleteAssistant("assistant_name").map(
-    _ match {
-      case DeleteResponse.Deleted => println("Assistant successfully deleted.")
-      case DeleteResponse.NotFound => println("Assistant with a given name not found.")
-    }
-  )
+  pineconeAssistantService.deleteAssistant("assistant_name").map {
+    case DeleteResponse.Deleted => println("Assistant successfully deleted.")
+    case DeleteResponse.NotFound => println("Assistant with a given name not found.")
+  }
 ```
 
 - List assistant files
@@ -504,13 +492,11 @@ Examples:
   pineconeAssistantService.uploadFile(
     assistantName = "assistant_name",
     filePath = "path_to_file"
-  ).map(
-    _ match {
-      case CreateResponse.Created => println("File successfully uploaded.")
-      case CreateResponse.BadRequest => println("File upload failed. Request exceeds quota or an invalid file path.")
-      case CreateResponse.AlreadyExists => println("File with a given name already exists.")
-    }
-  )
+  ).map {
+    case CreateResponse.Created => println("File successfully uploaded.")
+    case CreateResponse.BadRequest => println("File upload failed. Request exceeds quota or an invalid file path.")
+    case CreateResponse.AlreadyExists => println("File with a given name already exists.")
+  }
 ```
 
 - Describe assistant file
@@ -525,16 +511,19 @@ Examples:
 - Chat with an assistant
 
 ```scala
-  pineconeAssistantService.chatWithAnAssistant("assistant_name", "What is the maximum height of a red pine?").map(response =>
+  pineconeAssistantService.chatWithAssistant(
+    "assistant_name",
+    "What is the maximum height of a red pine?"
+  ).map(response =>
     println(response)
   )
 ```
 
 ## Demo
 
-For ready-to-run demos pls. refer to separate seed projects:
-- [Pinecone Scala Demo](https://github.com/cequence-io/pinecone-scala-demo) - shows how to use Pinecone vector, index, and collection operations  
-- [Pinecone + OpenAI Scala Demo](https://github.com/cequence-io/pinecone-openai-scala-demo) - shows how to generate and store OpenAI embeddings into Pinecone and query them afterwards
+For ready-to-run demos pls. refer to separate modules:
+- [Pinecone Scala Demo](https://github.com/cequence-io/pinecone-scala/tree/master/examples) - shows how to use Pinecone vector, index, and collection operations  
+- [Pinecone + OpenAI Scala Demo](https://github.com/cequence-io/pinecone-scala/tree/master/openai-examples) - shows how to generate and store OpenAI embeddings into Pinecone and query them afterwards
 
 ## FAQ 🤔
 
