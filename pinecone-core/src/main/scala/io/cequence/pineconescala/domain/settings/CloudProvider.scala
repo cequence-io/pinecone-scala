@@ -4,16 +4,14 @@ import io.cequence.wsclient.domain.NamedEnumValue
 
 sealed abstract class CloudProvider(name: String) extends NamedEnumValue(name)
 
-// TODO: if not exhaustive we need a custom cloud provider
 object CloudProvider {
   case object AWS extends CloudProvider("aws")
   case object GCP extends CloudProvider("gcp")
   case object Azure extends CloudProvider("azure")
 
-  def fromString(value: String): Option[CloudProvider] = value match {
-    case "aws"   => Some(AWS)
-    case "gcp"   => Some(GCP)
-    case "azure" => Some(Azure)
-    case _       => None
-  }
+  private val values = Seq(AWS, GCP, Azure)
+  private val providerMap = values.map(r => r.toString() -> r).toMap
+
+  def fromString(value: String): Option[CloudProvider] =
+    providerMap.get(value)
 }
