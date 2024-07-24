@@ -68,7 +68,7 @@ class PineconeAssistantFileServiceImplSpec
         )
         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
         beforeCreateFiles <- assistantFileService.listFiles(assistantName)
-        _ <- assistantFileService.uploadFile(assistantFile, None, assistantName)
+        _ <- assistantFileService.uploadFile(assistantName, assistantFile)
         afterCreateFiles <- assistantFileService.listFiles(assistantName)
         _ <- tearDown(assistantService)
       } yield {
@@ -91,7 +91,7 @@ class PineconeAssistantFileServiceImplSpec
           assistantService.createAssistant(assistantName, parameters)
         )
         _ <- eventuallyAssistantIs(Ready)(assistantService, assistantName)
-        assistantFile <- assistantFileService.uploadFile(assistantFile, None, assistantName)
+        assistantFile <- assistantFileService.uploadFile(assistantName, assistantFile)
         _ <- tearDown(assistantService)
       } yield {
         assistantFile.status shouldBe FileResponse.Status.Processing

@@ -24,7 +24,7 @@ trait PineconeAssistantService extends CloseableService with PineconeServiceCons
    * @param metadata A dictionary containing metadata for the assistant.
    * @return
    */
-  def createAssistant(name: String, metadata: Map[String, String]): Future[Assistant]
+  def createAssistant(name: String, metadata: Map[String, String] = Map.empty): Future[Assistant]
 
   /**
    * This operation describes an assistant and its metadata.
