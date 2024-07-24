@@ -15,7 +15,7 @@ Also, we aimed the lib to be self-contained with the fewest dependencies possibl
 
 **✔️ Important**: this is a "community-maintained" library and, as such, has no relation to Pinecone company.
 
-👉 Check out an article about the lib/client on [Medium](https://medium.com/@0xbnd/pinecone-scala-client-just-landed-53b3638e61b3). Also, **if you want to see hands-on examples right on, go to** [Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/examples) or [OpenAI + Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/openai-examples) modules.
+👉 Check out an article about the lib/client on [Medium](https://medium.com/@0xbnd/pinecone-scala-client-just-landed-53b3638e61b3). Also, **if you want to see hands-on examples right away, go to the [Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/examples) or [OpenAI + Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/openai-examples) modules.**
 
 ## Installation 🚀
 
