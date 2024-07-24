@@ -54,7 +54,7 @@ class PineconeAssistantFileServiceImpl(
   override def uploadFile(
     assistantName: String,
     file: File,
-    displayFileName: Option[String]
+    displayFileName: Option[String] = None
   ): Future[FileResponse] = {
     execPOSTMultipart(
       EndPoint.files,
