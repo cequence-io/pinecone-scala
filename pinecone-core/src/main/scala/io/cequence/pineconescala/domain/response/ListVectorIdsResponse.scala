@@ -2,7 +2,7 @@ package io.cequence.pineconescala.domain.response
 
 case class ListVectorIdsResponse(
   vectors: Seq[VectorId],
-  pagination: ListVectorIdsPagination,
+  pagination: Option[ListVectorIdsPagination],
   namespace: String
 )
 
