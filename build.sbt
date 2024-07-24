@@ -47,6 +47,12 @@ ThisBuild / developers := List(
     "Boris Burdiliak",
     "boris.burdiliak@cequence.io",
     url("https://cequence.io")
+  ),
+  Developer(
+    "branislav-burdiliak",
+    "Brano Burdiliak",
+    "brano.burdiliak@cequence.io",
+    url("https://cequence.io")
   )
 )
 
