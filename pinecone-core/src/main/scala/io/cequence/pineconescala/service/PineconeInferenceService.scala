@@ -6,6 +6,17 @@ import io.cequence.wsclient.service.CloseableService
 
 import scala.concurrent.Future
 
+/**
+ * Pinecone inference operations as defined at <a
+ * href="https://docs.pinecone.io/reference/api/2024-07/inference">the API ref. page</a>
+ *
+ * The following services are supported:
+ *
+ *   - createEmbeddings
+ *
+ * @since May
+ *   2024
+ */
 trait PineconeInferenceService extends CloseableService with PineconeServiceConsts {
 
   /**

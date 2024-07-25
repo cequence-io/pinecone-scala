@@ -6,6 +6,21 @@ import java.io.File
 import java.util.UUID
 import scala.concurrent.Future
 
+/**
+ * Pinecone assistant file operations as defined at <a
+ * href="https://docs.pinecone.io/reference/api/2024-07/assistant">the API ref. page</a>
+ *
+ * The following services are supported:
+ *
+ * - listFiles
+ * - uploadFile
+ * - describeFile
+ * - deleteFile
+ * - chatWithAssistant
+ *
+ * @since July
+ *   2024
+ */
 trait PineconeAssistantFileService {
 
   /**

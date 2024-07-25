@@ -5,6 +5,20 @@ import io.cequence.wsclient.service.CloseableService
 
 import scala.concurrent.Future
 
+/**
+ * Pinecone assistant operations as defined at <a
+ * href="https://docs.pinecone.io/reference/api/2024-07/assistant">the API ref. page</a>
+ *
+ * The following services are supported:
+ *
+ * - listAssistants
+ * - createAssistant
+ * - describeAssistant
+ * - deleteAssistant
+ *
+ * @since July
+ *   2024
+ */
 trait PineconeAssistantService extends CloseableService with PineconeServiceConsts {
 
   /**

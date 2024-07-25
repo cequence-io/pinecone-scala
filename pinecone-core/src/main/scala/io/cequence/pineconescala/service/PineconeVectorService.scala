@@ -18,6 +18,7 @@ import scala.concurrent.Future
  *  - fetch
  *  - update
  *  - upsert
+ *  - listVectorIDs
  *
  * @since Apr 2023
  */
