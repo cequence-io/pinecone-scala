@@ -19,12 +19,12 @@ trait PineconeAssistantFileService {
   /**
    * This operation uploads a file to a specified assistant.
    *
+   * @param assistantName The name of the assistant to upload file to.
    * @param file A file to upload.
    * @param displayFileName The name of the file to be displayed.
-   * @param name The name of the assistant to upload file to.
    * @return
    */
-  def uploadFile(file: File, displayFileName: Option[String], assistantName: String): Future[FileResponse]
+  def uploadFile(assistantName: String, file: File, displayFileName: Option[String] = None): Future[FileResponse]
 
   /**
    *

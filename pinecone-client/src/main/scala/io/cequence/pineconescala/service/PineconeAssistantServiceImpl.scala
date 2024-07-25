@@ -1,14 +1,11 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.{
   Assistant,
-  ChatCompletionResponse,
   DeleteResponse,
   ListAssistantsResponse,
-  ListFilesResponse,
-  UserMessage
 }
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
@@ -96,6 +93,13 @@ class PineconeAssistantServiceImpl(
 }
 
 object PineconeAssistantServiceFactory extends PineconeServiceFactoryHelper {
+
+  def apply(
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeAssistantService =
+    apply(ConfigFactory.load(configFileName))
 
   def apply(
     apiKey: String,

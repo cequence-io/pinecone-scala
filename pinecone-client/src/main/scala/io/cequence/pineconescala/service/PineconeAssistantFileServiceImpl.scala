@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response.{
   ChatCompletionResponse,
@@ -52,9 +52,9 @@ class PineconeAssistantFileServiceImpl(
       .map(_.files)
 
   override def uploadFile(
+    assistantName: String,
     file: File,
-    displayFileName: Option[String],
-    assistantName: String
+    displayFileName: Option[String] = None
   ): Future[FileResponse] = {
     execPOSTMultipart(
       EndPoint.files,
@@ -118,6 +118,13 @@ class PineconeAssistantFileServiceImpl(
 }
 
 object PineconeAssistantFileServiceFactory extends PineconeServiceFactoryHelper {
+
+  def apply(
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeAssistantFileService =
+    apply(ConfigFactory.load(configFileName))
 
   def apply(
     apiKey: String,

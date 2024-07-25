@@ -5,7 +5,7 @@ import akka.stream.Materializer
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
-import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconePodBasedIndexService, PineconeServerlessIndexService, PineconeVectorServiceFactory}
+import io.cequence.pineconescala.service.{PineconeAssistantFileServiceFactory, PineconeAssistantServiceFactory, PineconeIndexServiceFactory, PineconePodBasedIndexService, PineconeServerlessIndexService, PineconeVectorServiceFactory}
 
 trait PineconeDemoApp extends App {
 
@@ -18,6 +18,9 @@ trait PineconeDemoApp extends App {
   protected def exec: Future[_]
 
   protected lazy val pineconeIndexService = PineconeIndexServiceFactory().asOne
+
+  protected lazy val pineconeAssistantService = PineconeAssistantServiceFactory()
+  protected lazy val pineconeAssistantFileService = PineconeAssistantFileServiceFactory()
 
   protected def pineconePodBasedIndexService: PineconePodBasedIndexService = pineconeIndexService match {
     case service: PineconePodBasedIndexService => service
