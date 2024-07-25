@@ -3,9 +3,9 @@ package io.cequence.pineconescala.demo
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
+import io.cequence.pineconescala.service._
 
 import scala.concurrent.{ExecutionContext, Future}
-import io.cequence.pineconescala.service.{PineconeAssistantFileServiceFactory, PineconeAssistantServiceFactory, PineconeIndexServiceFactory, PineconePodBasedIndexService, PineconeServerlessIndexService, PineconeVectorServiceFactory}
 
 trait PineconeDemoApp extends App {
 
@@ -22,15 +22,17 @@ trait PineconeDemoApp extends App {
   protected lazy val pineconeAssistantService = PineconeAssistantServiceFactory()
   protected lazy val pineconeAssistantFileService = PineconeAssistantFileServiceFactory()
 
-  protected def pineconePodBasedIndexService: PineconePodBasedIndexService = pineconeIndexService match {
-    case service: PineconePodBasedIndexService => service
-    case _ => throw new Exception("PineconeIndexService is not pod based")
-  }
+  protected def pineconePodBasedIndexService: PineconePodBasedIndexService =
+    pineconeIndexService match {
+      case service: PineconePodBasedIndexService => service
+      case _ => throw new Exception("PineconeIndexService is not pod based")
+    }
 
-  protected def pineconeServerlessIndexService: PineconeServerlessIndexService = pineconeIndexService match {
-    case service: PineconeServerlessIndexService => service
-    case _ => throw new Exception("PineconeIndexService is not pod based")
-  }
+  protected def pineconeServerlessIndexService: PineconeServerlessIndexService =
+    pineconeIndexService match {
+      case service: PineconeServerlessIndexService => service
+      case _ => throw new Exception("PineconeIndexService is not pod based")
+    }
 
   protected def createPineconeVectorService(indexName: String) =
     PineconeVectorServiceFactory(indexName).map(
@@ -44,11 +46,9 @@ trait PineconeDemoApp extends App {
       _ <- exec
 
       _ <- actorSystem.terminate()
-    } yield
-      System.exit(0)
-  } recover {
-    case e: Exception =>
-      e.printStackTrace()
-      System.exit(1)
+    } yield System.exit(0)
+  } recover { case e: Exception =>
+    e.printStackTrace()
+    System.exit(1)
   }
 }

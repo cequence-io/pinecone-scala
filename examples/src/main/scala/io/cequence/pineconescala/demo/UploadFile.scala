@@ -1,7 +1,5 @@
 package io.cequence.pineconescala.demo
 
-import io.cequence.pineconescala.demo.DescribeAssistant.pineconeAssistantService
-
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
@@ -11,7 +9,9 @@ object UploadFile extends PineconeDemoApp {
 
   override protected def exec = {
     val assistantName = s"assistant-${System.currentTimeMillis()}"
+
     val file = createAssistantFile()
+
     for {
       _ <- pineconeAssistantService.createAssistant(assistantName)
       _ = waitForAssistantToInitialize()
@@ -23,7 +23,10 @@ object UploadFile extends PineconeDemoApp {
 
   private def createAssistantFile(): File = {
     val path = "pinecone-assistant.txt"
-    Files.write(Paths.get(path), "The quick brown fox jumps over the lazy dog.".getBytes(StandardCharsets.UTF_8))
+    Files.write(
+      Paths.get(path),
+      "The quick brown fox jumps over the lazy dog.".getBytes(StandardCharsets.UTF_8)
+    )
     val inputFile = Paths.get(path).toFile
     inputFile
   }

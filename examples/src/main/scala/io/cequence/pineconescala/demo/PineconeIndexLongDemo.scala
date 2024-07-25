@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.domain.PodType
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory
-import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,12 +26,14 @@ object PineconeIndexLongDemo extends App {
       )
 
       // create index
-      _ <- pineconePodBasedIndexService.createIndex(
-        name = indexName,
-        dimension = 1536
-      ).map { response =>
-        println(s"Create index response: ${response}")
-      }
+      _ <- pineconePodBasedIndexService
+        .createIndex(
+          name = indexName,
+          dimension = 1536
+        )
+        .map { response =>
+          println(s"Create index response: ${response}")
+        }
 
       // list indexes
       _ <- pineconePodBasedIndexService.listIndexes.map { indexes =>
@@ -45,13 +46,15 @@ object PineconeIndexLongDemo extends App {
       }
 
       // configure index
-      _ <- pineconePodBasedIndexService.configureIndex(
-        "auto-gpt-test",
-        replicas = Some(0),
-        podType = Some(PodType.p1_x1)
-      ).map { response =>
-        println(s"Configure index response: ${response}")
-      }
+      _ <- pineconePodBasedIndexService
+        .configureIndex(
+          "auto-gpt-test",
+          replicas = Some(0),
+          podType = Some(PodType.p1_x1)
+        )
+        .map { response =>
+          println(s"Configure index response: ${response}")
+        }
 
       // describe index after re-configuring (update)
       _ <- pineconePodBasedIndexService.describeIndex(indexName).map { indexInfo =>
@@ -80,12 +83,14 @@ object PineconeIndexLongDemo extends App {
       }
 
       // re-create index
-      _ <- pineconePodBasedIndexService.createIndex(
-        name = indexName,
-        dimension = 1536
-      ).map { response =>
-        println(s"Create index response: ${response}")
-      }
+      _ <- pineconePodBasedIndexService
+        .createIndex(
+          name = indexName,
+          dimension = 1536
+        )
+        .map { response =>
+          println(s"Create index response: ${response}")
+        }
 
       // wait a bit
       _ = {
@@ -99,8 +104,9 @@ object PineconeIndexLongDemo extends App {
       }
 
       // create collection
-      _ <- pineconePodBasedIndexService.createCollection(collectionName, indexName).map { response =>
-        println(s"Create collection response: ${response}")
+      _ <- pineconePodBasedIndexService.createCollection(collectionName, indexName).map {
+        response =>
+          println(s"Create collection response: ${response}")
       }
 
       // list collections (at least one should be available)
@@ -109,14 +115,15 @@ object PineconeIndexLongDemo extends App {
       )
 
       // describe collection (option is returned)
-      _ <- pineconePodBasedIndexService.describeCollection(collectionName).map { collectionInfo =>
-        println(s"Collection info: ${collectionInfo}")
+      _ <- pineconePodBasedIndexService.describeCollection(collectionName).map {
+        collectionInfo =>
+          println(s"Collection info: ${collectionInfo}")
       }
 
       // delete collection
-      _ <- pineconePodBasedIndexService.deleteCollection(collectionName).map(response =>
-        println(s"Delete collection response: ${response}")
-      )
+      _ <- pineconePodBasedIndexService
+        .deleteCollection(collectionName)
+        .map(response => println(s"Delete collection response: ${response}"))
 
       // wait a bit
       _ = {
@@ -131,9 +138,8 @@ object PineconeIndexLongDemo extends App {
     } yield {
       System.exit(0)
     }
-  } recover {
-    case e: Throwable =>
-      println(e)
-      System.exit(1)
+  } recover { case e: Throwable =>
+    println(e)
+    System.exit(1)
   }
 }

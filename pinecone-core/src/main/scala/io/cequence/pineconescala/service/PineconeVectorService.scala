@@ -66,6 +66,8 @@ trait PineconeVectorService extends PineconeServiceConsts {
    * The list operation lists the IDs of vectors in a single namespace.
    * An optional prefix can be passed to limit the results to IDs with a common prefix.
    *
+   * Note: This operation seems to be working only for serverless indexes.
+   *
    * It returns up to 100 IDs at a time by default in sorted order (bitwise/"C" collation).
    * If the limit parameter is set, list returns up to that number of IDs instead.
    * Whenever there are additional IDs to return, the response also includes a pagination_token that you can use to get the next batch of IDs.

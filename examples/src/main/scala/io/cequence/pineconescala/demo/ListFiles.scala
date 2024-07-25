@@ -23,7 +23,10 @@ object ListFiles extends PineconeDemoApp {
 
   private def createAssistantFile(): File = {
     val path = "pinecone-assistant.txt"
-    Files.write(Paths.get(path), "The quick brown fox jumps over the lazy dog.".getBytes(StandardCharsets.UTF_8))
+    Files.write(
+      Paths.get(path),
+      "The quick brown fox jumps over the lazy dog.".getBytes(StandardCharsets.UTF_8)
+    )
     val inputFile = Paths.get(path).toFile
     inputFile
   }

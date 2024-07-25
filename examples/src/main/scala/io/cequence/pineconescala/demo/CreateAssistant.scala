@@ -9,5 +9,4 @@ object CreateAssistant extends PineconeDemoApp {
     val assistantName = s"assistant-${System.currentTimeMillis()}"
     pineconeAssistantService.createAssistant(assistantName).map(println)
   }
-
 }

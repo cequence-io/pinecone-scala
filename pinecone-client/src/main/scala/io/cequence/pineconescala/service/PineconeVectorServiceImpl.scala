@@ -7,6 +7,7 @@ import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{IndexSettings, QuerySettings}
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.domain.WsRequestContext
@@ -230,10 +231,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
       apiKey = config.getString(s"$configPrefix.apiKey"),
       indexName = indexName,
       timeouts = timeouts.toOption,
-      pineconeIndexService = PineconeIndexServiceFactory(config) match {
-        case Left(value)  => value
-        case Right(value) => value
-      }
+      pineconeIndexService = PineconeIndexServiceFactory(config).asOne
     )
   }
 
@@ -241,7 +239,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,
-    pineconeIndexService: PineconeIndexService[_ <: IndexSettings]
+    pineconeIndexService: PineconeIndexService[_]
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer

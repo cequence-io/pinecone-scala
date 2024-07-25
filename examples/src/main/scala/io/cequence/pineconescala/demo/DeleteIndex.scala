@@ -6,7 +6,7 @@ import io.cequence.pineconescala.domain.response.DeleteResponse
 object DeleteIndex extends PineconeDemoApp {
   override protected def exec =
     pineconeIndexService.deleteIndex("auto-gpt-test").map {
-      case DeleteResponse.Deleted => println("Index successfully deleted.")
+      case DeleteResponse.Deleted  => println("Index successfully deleted.")
       case DeleteResponse.NotFound => println("Index with a given name not found.")
     }
 }

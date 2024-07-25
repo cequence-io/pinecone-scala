@@ -7,7 +7,7 @@ object DeleteAssistant extends PineconeDemoApp {
 
   override protected def exec =
     pineconeAssistantService.deleteAssistant("my-assistant").map {
-      case DeleteResponse.Deleted => println("Assistant successfully deleted.")
+      case DeleteResponse.Deleted  => println("Assistant successfully deleted.")
       case DeleteResponse.NotFound => println("Assistant with a given name not found.")
     }
 }
