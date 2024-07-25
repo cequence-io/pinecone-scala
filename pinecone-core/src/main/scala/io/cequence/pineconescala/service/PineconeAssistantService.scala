@@ -1,9 +1,8 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{Assistant, ChatCompletionResponse, DeleteResponse, FileResponse}
+import io.cequence.pineconescala.domain.response.{Assistant, DeleteResponse}
 import io.cequence.wsclient.service.CloseableService
 
-import java.util.UUID
 import scala.concurrent.Future
 
 trait PineconeAssistantService extends CloseableService with PineconeServiceConsts {

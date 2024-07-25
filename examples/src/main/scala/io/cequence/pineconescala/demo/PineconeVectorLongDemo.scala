@@ -1,8 +1,13 @@
 package io.cequence.pineconescala.demo
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
+import io.cequence.pineconescala.domain.settings.QuerySettings
+import io.cequence.pineconescala.domain.{PVector, SparseVector}
+import io.cequence.pineconescala.service.PineconeVectorServiceFactory
 
 import scala.concurrent.ExecutionContext
+import scala.util.Random
 
 // run me - env. variables PINECONE_SCALA_CLIENT_API_KEY and PINECONE_SCALA_CLIENT_ENV must be set
 object PineconeVectorLongDemo extends App {

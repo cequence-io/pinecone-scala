@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.{IndexSettings, QuerySettings}
+import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 import io.cequence.wsclient.JsonUtil.JsonOps
