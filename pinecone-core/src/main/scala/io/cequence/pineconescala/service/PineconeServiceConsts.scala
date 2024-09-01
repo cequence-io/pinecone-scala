@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
-import io.cequence.pineconescala.domain.{Metric, PodType}
+import io.cequence.pineconescala.domain.{EmbeddingModelId, Metric, PodType, RerankModelId}
 import io.cequence.pineconescala.domain.settings._
 
 /**
@@ -37,7 +37,11 @@ trait PineconeServiceConsts {
     )
 
     val GenerateEmbeddings = GenerateEmbeddingsSettings(
-      model = "multilingual-e5-large"
+      model = EmbeddingModelId.multilingual_e5_large
+    )
+
+    val Rerank = RerankSettings(
+      model = RerankModelId.bge_reranker_v2_m3
     )
   }
 }

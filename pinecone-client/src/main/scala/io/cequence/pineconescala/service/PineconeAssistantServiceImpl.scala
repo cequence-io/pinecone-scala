@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.{
   Assistant,
   DeleteResponse,
-  ListAssistantsResponse,
+  ListAssistantsResponse
 }
 import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
@@ -92,16 +92,10 @@ class PineconeAssistantServiceImpl(
 
 }
 
-object PineconeAssistantServiceFactory extends PineconeServiceFactoryHelper {
+object PineconeAssistantServiceFactory
+    extends SimplePineconeServiceFactory[PineconeAssistantService] {
 
-  def apply(
-  )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeAssistantService =
-    apply(ConfigFactory.load(configFileName))
-
-  def apply(
+  override def apply(
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
@@ -110,19 +104,4 @@ object PineconeAssistantServiceFactory extends PineconeServiceFactoryHelper {
   ): PineconeAssistantService = {
     new PineconeAssistantServiceImpl(apiKey, timeouts)
   }
-
-  def apply(
-    config: Config
-  )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeAssistantService = {
-    val timeouts = loadTimeouts(config)
-
-    apply(
-      apiKey = config.getString(s"$configPrefix.apiKey"),
-      timeouts = timeouts.toOption
-    )
-  }
-
 }

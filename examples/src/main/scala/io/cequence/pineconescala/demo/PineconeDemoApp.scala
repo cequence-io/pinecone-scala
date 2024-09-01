@@ -18,9 +18,9 @@ trait PineconeDemoApp extends App {
   protected def exec: Future[_]
 
   protected lazy val pineconeIndexService = PineconeIndexServiceFactory().asOne
-
   protected lazy val pineconeAssistantService = PineconeAssistantServiceFactory()
   protected lazy val pineconeAssistantFileService = PineconeAssistantFileServiceFactory()
+  protected lazy val pineconeInferenceService = PineconeInferenceServiceFactory()
 
   protected def pineconePodBasedIndexService: PineconePodBasedIndexService =
     pineconeIndexService match {
@@ -41,13 +41,24 @@ trait PineconeDemoApp extends App {
       )
     )
 
+  private def closeServices() = {
+    pineconeIndexService.close()
+    pineconeAssistantService.close()
+    pineconeAssistantFileService.close()
+    pineconeInferenceService.close()
+  }
+
   {
     for {
       _ <- exec
 
       _ <- actorSystem.terminate()
-    } yield System.exit(0)
+    } yield {
+      closeServices()
+      System.exit(0)
+    }
   } recover { case e: Exception =>
+    closeServices()
     e.printStackTrace()
     System.exit(1)
   }

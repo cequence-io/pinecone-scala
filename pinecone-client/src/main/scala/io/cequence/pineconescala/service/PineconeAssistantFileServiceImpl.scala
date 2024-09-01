@@ -117,36 +117,15 @@ class PineconeAssistantFileServiceImpl(
     }
 }
 
-object PineconeAssistantFileServiceFactory extends PineconeServiceFactoryHelper {
+object PineconeAssistantFileServiceFactory
+    extends SimplePineconeServiceFactory[PineconeAssistantFileService] {
 
-  def apply(
-  )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeAssistantFileService =
-    apply(ConfigFactory.load(configFileName))
-
-  def apply(
+  override def apply(
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): PineconeAssistantFileService = {
+  ): PineconeAssistantFileService =
     new PineconeAssistantFileServiceImpl(apiKey, timeouts)
-  }
-
-  def apply(
-    config: Config
-  )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeAssistantFileService = {
-    val timeouts = loadTimeouts(config)
-
-    apply(
-      apiKey = config.getString(s"$configPrefix.apiKey"),
-      timeouts = timeouts.toOption
-    )
-  }
 }

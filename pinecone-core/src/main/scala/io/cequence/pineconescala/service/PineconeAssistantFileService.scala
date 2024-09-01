@@ -1,6 +1,7 @@
 package io.cequence.pineconescala.service
 
 import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, DeleteResponse, FileResponse}
+import io.cequence.wsclient.service.CloseableService
 
 import java.io.File
 import java.util.UUID
@@ -21,7 +22,7 @@ import scala.concurrent.Future
  * @since July
  *   2024
  */
-trait PineconeAssistantFileService {
+trait PineconeAssistantFileService extends CloseableService {
 
   /**
    * This operation returns a list of all files in an assistant.
