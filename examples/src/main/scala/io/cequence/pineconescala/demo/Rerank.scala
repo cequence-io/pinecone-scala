@@ -33,7 +33,7 @@ object Rerank extends PineconeDemoApp {
       settings = RerankSettings(
         model = RerankModelId.bge_reranker_v2_m3,
         top_n = Some(4),
-        return_documents = false,
+        return_documents = true,
         rank_fields = Seq("my_field")
       )
     ).map { response =>
