@@ -1,9 +1,8 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import com.typesafe.config.Config
-import io.cequence.pineconescala.domain.response.GenerateEmbeddingsResponse
-import io.cequence.pineconescala.domain.settings.GenerateEmbeddingsSettings
+import io.cequence.pineconescala.domain.response.{GenerateEmbeddingsResponse, RerankResponse}
+import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, RerankSettings}
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import io.cequence.pineconescala.JsonFormats._
@@ -29,10 +28,10 @@ private class PineconeInferenceServiceImpl(
   // we use play-ws backend
   override protected val engine: WSClientEngine = PlayWSClientEngine(
     coreUrl = "https://api.pinecone.io/",
-    requestContext =  WsRequestContext(
+    requestContext = WsRequestContext(
       authHeaders = Seq(
         ("Api-Key", apiKey),
-        ("X-Pinecone-API-Version", "2024-07")
+        ("X-Pinecone-API-Version", "2024-10")
       ),
       explTimeouts = explicitTimeouts
     )
@@ -67,6 +66,44 @@ private class PineconeInferenceServiceImpl(
       )
     ).map(
       _.asSafeJson[GenerateEmbeddingsResponse]
+    )
+
+  /**
+   * Using a reranker to rerank a list of items for a query.
+   *
+   * @param query
+   *   The query to rerank documents against (required)
+   * @param documents
+   *   The documents to rerank (required)
+   * @param settings
+   * @return
+   *
+   * @see
+   *   <a href="https://docs.pinecone.io/reference/api/2024-10/inference/rerank">Pinecone
+   *   Doc</a>
+   */
+  override def rerank(
+    query: String,
+    documents: Seq[Map[String, Any]],
+    settings: RerankSettings = DefaultSettings.Rerank
+  ): Future[RerankResponse] =
+    execPOST(
+      EndPoint.rerank,
+      bodyParams = jsonBodyParams(
+        Tag.query -> Some(query),
+        Tag.documents -> Some(documents),
+        Tag.model -> Some(settings.model),
+        Tag.top_n -> settings.top_n,
+        Tag.return_documents -> Some(settings.return_documents),
+        Tag.rank_fields -> (
+          if (settings.rank_fields.nonEmpty) Some(settings.rank_fields) else None
+        ),
+        Tag.parameters -> (
+          if (settings.parameters.nonEmpty) Some(settings.parameters) else None
+        )
+      )
+    ).map(
+      _.asSafeJson[RerankResponse]
     )
 
   override protected def handleErrorCodes(

@@ -5,7 +5,8 @@ import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, EmbeddingsTruncate}
 import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
 import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector, response}
-import io.cequence.wsclient.JsonUtil.enumFormat
+import io.cequence.wsclient.JsonUtil
+import io.cequence.wsclient.JsonUtil.{JsonOps, enumFormat, toJson}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -89,7 +90,8 @@ object JsonFormats {
   implicit lazy val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
     Json.reads[EmbeddingsUsageInfo]
   implicit lazy val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
-  implicit lazy val embeddingValuesReads: Reads[EmbeddingsValues] = Json.reads[EmbeddingsValues]
+  implicit lazy val embeddingValuesReads: Reads[EmbeddingsValues] =
+    Json.reads[EmbeddingsValues]
   implicit lazy val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] =
     Json.reads[GenerateEmbeddingsResponse]
 
@@ -176,4 +178,13 @@ object JsonFormats {
   implicit lazy val chatCompletionChoiceFormat: Format[Choice] = Json.format[Choice]
   implicit lazy val chatCompletionModelFormat: Format[ChatCompletionResponse] =
     Json.format[ChatCompletionResponse]
+
+  // rerank
+  implicit lazy val rerankUsageFormat: Format[RerankUsage] = Json.format[RerankUsage]
+  implicit lazy val rerankedDocumentFormat: Format[RerankedDocument] = {
+    implicit lazy val stringAnyMapFormat: Format[Map[String, Any]] =
+      JsonUtil.StringAnyMapFormat
+    Json.format[RerankedDocument]
+  }
+  implicit lazy val rerankResponseFormat: Format[RerankResponse] = Json.format[RerankResponse]
 }

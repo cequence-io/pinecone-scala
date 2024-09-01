@@ -5,7 +5,10 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
-import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
+import io.cequence.pineconescala.domain.settings.IndexSettings.{
+  CreatePodBasedIndexSettings,
+  CreateServerlessIndexSettings
+}
 import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.PodType
 import io.cequence.wsclient.JsonUtil.JsonOps
@@ -59,11 +62,31 @@ private final class ServerlessIndexServiceImpl(
       indexesEndpoint,
       bodyParams = {
         jsonBodyParams(
-          Tag.fromCreateServerlessIndexSettings(name, dimension, settings): _*
+          fromCreateServerlessIndexSettings(name, dimension, settings): _*
         )
       },
       acceptableStatusCodes = Nil // don't parse response at all
     ).map(handleCreateResponse)
+
+  private def fromCreateServerlessIndexSettings(
+    name: String,
+    dimension: Int,
+    settings: CreateServerlessIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(settings.metric.toString),
+      Tag.spec -> Some(
+        Map(
+          "serverless" -> Map(
+            Tag.cloud.toString -> settings.cloud.toString,
+            Tag.region.toString -> settings.region.toString
+          )
+        )
+      )
+    )
+  }
 
   override def describeIndexResponse(json: JsValue): IndexInfo =
     json.asSafe[ServerlessIndexInfo]
@@ -117,10 +140,35 @@ private final class PineconePodPineconeBasedImpl(
     execPOSTRich(
       indexesEndpoint,
       bodyParams = jsonBodyParams(
-        Tag.fromCreatePodBasedIndexSettings(name, dimension, settings): _*
+        fromCreatePodBasedIndexSettings(name, dimension, settings): _*
       ),
       acceptableStatusCodes = Nil // don't parse response at all
     ).map(handleCreateResponse)
+
+  private def fromCreatePodBasedIndexSettings(
+    name: String,
+    dimension: Int,
+    settings: CreatePodBasedIndexSettings
+  ): Seq[(Tag, Option[Any])] = {
+    Seq(
+      Tag.name -> Some(name),
+      Tag.dimension -> Some(dimension),
+      Tag.metric -> Some(settings.metric.toString),
+      Tag.spec -> Some(
+        Map(
+          "pod" -> Map(
+            Tag.pods.toString -> Some(settings.pods),
+            Tag.replicas.toString -> Some(settings.replicas),
+            Tag.pod_type.toString -> Some(settings.podType.toString),
+            Tag.shards.toString -> Some(settings.shards),
+            Tag.metadata_config.toString ->
+              (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
+            Tag.source_collection.toString -> settings.sourceCollection
+          )
+        )
+      )
+    )
+  }
 
   override def configureIndex(
     indexName: String,
@@ -206,7 +254,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   // we use play-ws backend
   override protected val engine: WSClientEngine = PlayWSClientEngine(
     coreUrl,
-    requestContext =  WsRequestContext(
+    requestContext = WsRequestContext(
       authHeaders = Seq(("Api-Key", apiKey)),
       explTimeouts = explicitTimeouts
     )

@@ -20,6 +20,7 @@ object EndPoint {
   case object collections extends EndPoint
   case object databases extends EndPoint
   case object indexes extends EndPoint
+  case object rerank extends EndPoint
 }
 
 // TODO: rename to Param
@@ -63,50 +64,9 @@ object Tag {
   case object metadata extends Tag
   case object messages extends Tag
   case object file extends Tag
-
-  // TODO: move elsewhere
-  def fromCreatePodBasedIndexSettings(
-    name: String,
-    dimension: Int,
-    settings: CreatePodBasedIndexSettings
-  ): Seq[(Tag, Option[Any])] = {
-    Seq(
-      Tag.name -> Some(name),
-      Tag.dimension -> Some(dimension),
-      Tag.metric -> Some(settings.metric.toString),
-      Tag.spec -> Some(
-        Map(
-          "pod" -> Map(
-            Tag.pods.toString -> Some(settings.pods),
-            Tag.replicas.toString -> Some(settings.replicas),
-            Tag.pod_type.toString -> Some(settings.podType.toString),
-            Tag.shards.toString -> Some(settings.shards),
-            Tag.metadata_config.toString ->
-              (if (settings.metadataConfig.nonEmpty) Some(settings.metadataConfig) else None),
-            Tag.source_collection.toString -> settings.sourceCollection
-          )
-        )
-      )
-    )
-  }
-
-  def fromCreateServerlessIndexSettings(
-    name: String,
-    dimension: Int,
-    settings: CreateServerlessIndexSettings
-  ): Seq[(Tag, Option[Any])] = {
-    Seq(
-      Tag.name -> Some(name),
-      Tag.dimension -> Some(dimension),
-      Tag.metric -> Some(settings.metric.toString),
-      Tag.spec -> Some(
-        Map(
-          "serverless" -> Map(
-            Tag.cloud.toString -> settings.cloud.toString,
-            Tag.region.toString -> settings.region.toString
-          )
-        )
-      )
-    )
-  }
+  case object query extends Tag
+  case object documents extends Tag
+  case object top_n extends Tag
+  case object return_documents extends Tag
+  case object rank_fields extends Tag
 }
