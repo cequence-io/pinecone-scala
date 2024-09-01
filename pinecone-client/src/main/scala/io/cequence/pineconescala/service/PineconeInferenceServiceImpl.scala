@@ -76,29 +76,15 @@ private class PineconeInferenceServiceImpl(
     throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
 }
 
-object PineconeInferenceServiceFactory extends PineconeServiceFactoryHelper {
+object PineconeInferenceServiceFactory
+    extends SimplePineconeServiceFactory[PineconeInferenceService] {
 
-  def apply(
+  override def apply(
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
     implicit ec: ExecutionContext,
     materializer: Materializer
-  ): PineconeInferenceService = {
+  ): PineconeInferenceService =
     new PineconeInferenceServiceImpl(apiKey, timeouts)
-  }
-
-  def apply(
-    config: Config
-  )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeInferenceService = {
-    val timeouts = loadTimeouts(config)
-
-    apply(
-      apiKey = config.getString(s"$configPrefix.apiKey"),
-      timeouts = timeouts.toOption
-    )
-  }
 }
