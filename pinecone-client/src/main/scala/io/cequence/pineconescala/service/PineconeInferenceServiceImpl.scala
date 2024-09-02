@@ -85,7 +85,7 @@ private class PineconeInferenceServiceImpl(
   override def rerank(
     query: String,
     documents: Seq[Map[String, Any]],
-    settings: RerankSettings = DefaultSettings.Rerank
+    settings: RerankSettings
   ): Future[RerankResponse] =
     execPOST(
       EndPoint.rerank,
