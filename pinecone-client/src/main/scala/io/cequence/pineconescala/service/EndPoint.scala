@@ -9,7 +9,6 @@ object EndPoint {
   case object assistants extends EndPoint("assistant/assistants")
   case object chat extends EndPoint("assistant/chat")
   case object describe_index_stats extends EndPoint
-  case object embed extends EndPoint
   case object files extends EndPoint("assistant/files")
   case object query extends EndPoint
   case object vectors_delete extends EndPoint("vectors/delete")
@@ -20,7 +19,9 @@ object EndPoint {
   case object collections extends EndPoint
   case object databases extends EndPoint
   case object indexes extends EndPoint
-  case object rerank extends EndPoint
+  case class embed(prefix: String) extends EndPoint(s"${prefix}embed")
+  case class rerank(prefix: String) extends EndPoint(s"${prefix}rerank")
+  case class evaluate(prefix: String) extends EndPoint(s"${prefix}assistant/evaluation/metrics/alignment")
 }
 
 // TODO: rename to Param
@@ -69,4 +70,7 @@ object Tag {
   case object top_n extends Tag
   case object return_documents extends Tag
   case object rank_fields extends Tag
+  case object question extends Tag
+  case object answer extends Tag
+  case object ground_truth_answer extends Tag
 }

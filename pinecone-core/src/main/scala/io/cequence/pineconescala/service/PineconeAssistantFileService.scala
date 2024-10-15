@@ -1,6 +1,10 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, DeleteResponse, FileResponse}
+import io.cequence.pineconescala.domain.response.{
+  ChatCompletionResponse,
+  DeleteResponse,
+  FileResponse
+}
 import io.cequence.wsclient.service.CloseableService
 
 import java.io.File
@@ -13,11 +17,11 @@ import scala.concurrent.Future
  *
  * The following services are supported:
  *
- * - listFiles
- * - uploadFile
- * - describeFile
- * - deleteFile
- * - chatWithAssistant
+ *   - listFiles
+ *   - uploadFile
+ *   - describeFile
+ *   - deleteFile
+ *   - chatWithAssistant
  *
  * @since July
  *   2024
@@ -27,7 +31,8 @@ trait PineconeAssistantFileService extends CloseableService {
   /**
    * This operation returns a list of all files in an assistant.
    *
-   * @param assistantName The name of the assistant to get files of.
+   * @param assistantName
+   *   The name of the assistant to get files of.
    * @return
    */
   def listFiles(assistantName: String): Future[Seq[FileResponse]]
@@ -35,38 +40,56 @@ trait PineconeAssistantFileService extends CloseableService {
   /**
    * This operation uploads a file to a specified assistant.
    *
-   * @param assistantName The name of the assistant to upload file to.
-   * @param file A file to upload.
-   * @param displayFileName The name of the file to be displayed.
+   * @param assistantName
+   *   The name of the assistant to upload file to.
+   * @param file
+   *   A file to upload.
+   * @param displayFileName
+   *   The name of the file to be displayed.
    * @return
    */
-  def uploadFile(assistantName: String, file: File, displayFileName: Option[String] = None): Future[FileResponse]
+  def uploadFile(
+    assistantName: String,
+    file: File,
+    displayFileName: Option[String] = None
+  ): Future[FileResponse]
 
   /**
-   *
-   * @param assistantName The name of the assistant to get file from.
-   * @param fileId The UUID of the file to be described.
+   * @param assistantName
+   *   The name of the assistant to get file from.
+   * @param fileId
+   *   The UUID of the file to be described.
    * @return
    */
-  def describeFile(assistantName: String, fileId: UUID): Future[Option[FileResponse]]
+  def describeFile(
+    assistantName: String,
+    fileId: UUID
+  ): Future[Option[FileResponse]]
 
   /**
+   * @param assistantName
+   * @param fileId
+   *   The UUID of the file to be described.
+   * @return
+   */
+  def deleteFile(
+    assistantName: String,
+    fileId: UUID
+  ): Future[DeleteResponse]
+
+  /**
+   * This operation queries the completions endpoint of a Pinecone Assistant. For guidance and
+   * examples, see the chat with assistant guide.
    *
    * @param assistantName
-   * @param fileId The UUID of the file to be described.
+   *   The name of the assistant to be described.
+   * @param messages
+   *   An array of objects that represent the messages in a conversation.
    * @return
+   *   The ChatCompletionModel describes the response format of a chat request
    */
-  def deleteFile(assistantName: String, fileId: UUID): Future[DeleteResponse]
-
-
-  /**
-   * This operation queries the completions endpoint of a Pinecone Assistant.
-   * For guidance and examples, see the chat with assistant guide.
-   *
-   * @param assistantName The name of the assistant to be described.
-   * @param messages An array of objects that represent the messages in a conversation.
-   * @return The ChatCompletionModel describes the response format of a chat request
-   */
-  def chatWithAssistant(assistantName: String, messages: Seq[String]): Future[ChatCompletionResponse]
-
+  def chatWithAssistant(
+    assistantName: String,
+    messages: Seq[String]
+  ): Future[ChatCompletionResponse]
 }

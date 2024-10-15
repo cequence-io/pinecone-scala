@@ -1,12 +1,12 @@
 # Pinecone Scala Client 🗂️
-[![version](https://img.shields.io/badge/version-1.1.2-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
+[![version](https://img.shields.io/badge/version-1.2.0-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
 
 This is an intuitive async full-fledged Scala client for Pinecone API supporting all the available index, vector, collection, inference and assistant operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
 * **Vector Operations**: [describeIndexStats](https://docs.pinecone.io/reference/api/2024-07/data-plane/describeindexstats), [query](https://docs.pinecone.io/reference/api/2024-07/data-plane/query), [delete](https://docs.pinecone.io/reference/api/2024-07/data-plane/delete), [fetch](https://docs.pinecone.io/reference/api/2024-07/data-plane/fetch), [update](https://docs.pinecone.io/reference/api/2024-07/data-plane/update), and [upsert](https://docs.pinecone.io/reference/api/2024-07/data-plane/upsert)
 * **Collection Operations**: [listCollections](https://docs.pinecone.io/reference/api/2024-07/control-plane/list_collections), [createCollection](https://docs.pinecone.io/reference/api/2024-07/control-plane/create_collection), [describeCollection](https://docs.pinecone.io/reference/api/2024-07/control-plane/describe_collection), and [deleteCollection](https://docs.pinecone.io/reference/api/2024-07/control-plane/delete_collection)
 * **Index Operations**: [listIndexes](https://docs.pinecone.io/reference/api/2024-07/control-plane/list_indexes), [creatIndex](https://docs.pinecone.io/reference/api/2024-07/control-plane/create_index), [describeIndex](https://docs.pinecone.io/reference/api/2024-07/control-plane/describe_index), [deleteIndex](https://docs.pinecone.io/reference/api/2024-07/control-plane/delete_index), and [configureIndex](https://docs.pinecone.io/reference/api/2024-07/control-plane/configure_index)
-* **Inference Operations**: [embedData](https://docs.pinecone.io/reference/api/2024-07/inference/generate-embeddings), and [rerank](https://docs.pinecone.io/reference/api/2024-10/inference/rerank)
+* **Inference Operations**: [embedData](https://docs.pinecone.io/reference/api/2024-07/inference/generate-embeddings), [rerank](https://docs.pinecone.io/reference/api/2024-10/inference/rerank), and [evaluate](https://docs.pinecone.io/reference/api/assistant/metrics_alignment)
 * **Assistant Operations**:  [listAssistants](https://docs.pinecone.io/reference/api/2024-07/assistant/list-assistants), [createAssistant](https://docs.pinecone.io/reference/api/2024-07/assistant/create-assistant), [describeAssistant](https://docs.pinecone.io/reference/api/2024-07/assistant/describe-assistant), [deleteAssistant](https://docs.pinecone.io/reference/api/2024-07/assistant/delete-assistant), [listFiles](https://docs.pinecone.io/reference/api/2024-07/assistant/list-files), [uploadFile](https://docs.pinecone.io/reference/api/2024-07/assistant/create-file), [describeFile](https://docs.pinecone.io/reference/api/2024-07/assistant/describe-file), [deleteFile](https://docs.pinecone.io/reference/api/2024-07/assistant/delete-file), [chatWithAssistant](https://docs.pinecone.io/reference/api/2024-07/assistant/chat-completion-assistant)
   - these operations are provided by two services: `PineconeAssistantService` and `PineconeAssistantFileService`
 
@@ -24,7 +24,7 @@ The currently supported Scala versions are **2.12, 2.13**, and **3**.
 To pull the library you have to add the following dependency to your *build.sbt*
 
 ```
-"io.cequence" %% "pinecone-scala-client" % "1.1.2"
+"io.cequence" %% "pinecone-scala-client" % "1.2.0"
 ```
 
 or to *pom.xml* (if you use maven)
@@ -33,7 +33,7 @@ or to *pom.xml* (if you use maven)
 <dependency>
     <groupId>io.cequence</groupId>
     <artifactId>pinecone-scala-client_2.12</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -437,6 +437,18 @@ Examples:
   )
 ```
 
+- Evaluate Q&A
+
+```scala
+  pineconeInferenceService.evaluate(
+    question = "What are the capital cities of France, England and Spain?",
+    answer = "Paris is a city of France and Barcelona of Spain",
+    groundTruthAnswer = "Paris is the capital city of France, London of England and Madrid of Spain"
+  ).map { response =>
+    println(response)
+  }
+```
+
 ** Assistant Operations**
 
 - List assistants
@@ -549,7 +561,7 @@ pinecone-scala-client {
 }
 ```
 
-2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/1.1.2/pinecone-scala-client_2.13-1.1.2.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
+2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/1.2.0/pinecone-scala-client_2.13-1.2.0.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
 
    Set the env. variable `PINECONE_SCALA_CLIENT_API_KEY`. If you don't have one register [here](https://app.pinecone.io/?sessionType=signup).
 

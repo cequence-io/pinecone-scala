@@ -187,4 +187,12 @@ object JsonFormats {
     Json.format[RerankedDocument]
   }
   implicit lazy val rerankResponseFormat: Format[RerankResponse] = Json.format[RerankResponse]
+
+  // evaluate
+  implicit lazy val factFormat: Format[Fact] = Json.format[Fact]
+  implicit lazy val evaluateUsageFormat: Format[EvaluateUsage] = Json.format[EvaluateUsage]
+  implicit lazy val evaluatedFactFormat: Format[EvaluatedFact] = Json.format[EvaluatedFact]
+  implicit lazy val reasoningFormat: Format[Reasoning] = Json.format[Reasoning]
+  implicit lazy val metricsFormat: Format[Metrics] = Json.format[Metrics]
+  implicit lazy val evaluateResponseFormat: Format[EvaluateResponse] = Json.format[EvaluateResponse]
 }

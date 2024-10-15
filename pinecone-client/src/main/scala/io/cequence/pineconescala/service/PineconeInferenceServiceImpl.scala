@@ -1,7 +1,7 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import io.cequence.pineconescala.domain.response.{GenerateEmbeddingsResponse, RerankResponse}
+import io.cequence.pineconescala.domain.response.{EvaluateResponse, GenerateEmbeddingsResponse, RerankResponse}
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, RerankSettings}
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
@@ -10,6 +10,7 @@ import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.wsclient.domain.WsRequestContext
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
+import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,9 +26,12 @@ private class PineconeInferenceServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
+  private val regularURL = "api.pinecone.io/"
+  private val prodURL = "prod-1-data.ke.pinecone.io/"
+
   // we use play-ws backend
   override protected val engine: WSClientEngine = PlayWSClientEngine(
-    coreUrl = "https://api.pinecone.io/",
+    coreUrl = "https://", // TODO: change to regularURL eventually
     requestContext = WsRequestContext(
       authHeaders = Seq(
         ("Api-Key", apiKey),
@@ -51,7 +55,7 @@ private class PineconeInferenceServiceImpl(
     settings: GenerateEmbeddingsSettings
   ): Future[GenerateEmbeddingsResponse] =
     execPOST(
-      EndPoint.embed,
+      EndPoint.embed(regularURL),
       bodyParams = jsonBodyParams(
         Tag.inputs -> Some(
           inputs.map(input => Map("text" -> input))
@@ -88,7 +92,7 @@ private class PineconeInferenceServiceImpl(
     settings: RerankSettings
   ): Future[RerankResponse] =
     execPOST(
-      EndPoint.rerank,
+      EndPoint.rerank(regularURL),
       bodyParams = jsonBodyParams(
         Tag.query -> Some(query),
         Tag.documents -> Some(documents),
@@ -104,6 +108,22 @@ private class PineconeInferenceServiceImpl(
       )
     ).map(
       _.asSafeJson[RerankResponse]
+    )
+
+  override def evaluate(
+    question: String,
+    answer: String,
+    groundTruthAnswer: String
+  ): Future[EvaluateResponse] =
+    execPOST(
+      EndPoint.evaluate(prodURL),
+      bodyParams = jsonBodyParams(
+        Tag.question -> Some(question),
+        Tag.answer -> Some(answer),
+        Tag.ground_truth_answer -> Some(groundTruthAnswer)
+      )
+    ).map(
+      _.asSafeJson[EvaluateResponse]
     )
 
   override protected def handleErrorCodes(

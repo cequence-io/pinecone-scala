@@ -37,7 +37,8 @@ trait PineconeServiceConsts {
     )
 
     val GenerateEmbeddings = GenerateEmbeddingsSettings(
-      model = EmbeddingModelId.multilingual_e5_large
+      model = EmbeddingModelId.multilingual_e5_large,
+      input_type = Some(EmbeddingsInputType.Query)
     )
 
     val Rerank = RerankSettings(
