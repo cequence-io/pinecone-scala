@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import io.cequence.pineconescala.domain.settings.IndexSettings.{CreatePodBasedIndexSettings, CreateServerlessIndexSettings}
 import io.cequence.wsclient.domain.NamedEnumValue
 
 sealed abstract class EndPoint(value: String = "") extends NamedEnumValue(value)

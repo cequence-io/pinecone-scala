@@ -1,7 +1,6 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response.{
   ChatCompletionResponse,

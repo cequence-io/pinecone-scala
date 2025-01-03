@@ -6,7 +6,7 @@ import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, Embedding
 import io.cequence.pineconescala.domain.settings.EmbeddingsInputType.{Passage, Query}
 import io.cequence.pineconescala.domain.{Metric, PVector, PodType, SparseVector, response}
 import io.cequence.wsclient.JsonUtil
-import io.cequence.wsclient.JsonUtil.{JsonOps, enumFormat, toJson}
+import io.cequence.wsclient.JsonUtil.enumFormat
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
@@ -87,13 +87,22 @@ object JsonFormats {
     Json.format[ServerlessIndexInfo]
 
   // embeddings
-  implicit lazy val embeddingUsageInfoReads: Reads[EmbeddingsUsageInfo] =
-    Json.reads[EmbeddingsUsageInfo]
+  implicit lazy val embeddingUsageInfoFormat: Format[EmbeddingsUsageInfo] =
+    Json.format[EmbeddingsUsageInfo]
   implicit lazy val embeddingInfoReads: Reads[EmbeddingsInfo] = Json.reads[EmbeddingsInfo]
-  implicit lazy val embeddingValuesReads: Reads[EmbeddingsValues] =
-    Json.reads[EmbeddingsValues]
-  implicit lazy val embeddingResponseReads: Reads[GenerateEmbeddingsResponse] =
-    Json.reads[GenerateEmbeddingsResponse]
+  implicit lazy val denseEmbeddingValuesReads: Reads[DenseEmbeddingsValues] =
+    Json.reads[DenseEmbeddingsValues]
+  implicit lazy val denseEmbeddingResponseReads: Reads[EmbeddingsResponse.Dense] =
+    Json.reads[EmbeddingsResponse.Dense]
+  implicit lazy val sparseEmbeddingValuesReads: Reads[SparseEmbeddingsValues] =
+    (
+      (__ \ "sparse_values").read[Seq[Double]] and
+      (__ \ "sparse_indices").read[Seq[Long]] and
+      (__ \ "sparse_tokens").readWithDefault[Seq[String]](Nil)
+  )(SparseEmbeddingsValues.apply _)
+
+  implicit lazy val sparseEmbeddingResponseReads: Reads[EmbeddingsResponse.Sparse] =
+    Json.reads[EmbeddingsResponse.Sparse]
 
   implicit lazy val embeddingsInputTypeWrites: Writes[EmbeddingsInputType] = enumFormat(
     Query,
