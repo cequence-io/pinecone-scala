@@ -1,7 +1,5 @@
 package io.cequence.pineconescala.domain.settings
 
-import io.cequence.pineconescala.domain.SparseVector
-
 case class QuerySettings(
   // The number of results to return for each query.
   topK: Int,
