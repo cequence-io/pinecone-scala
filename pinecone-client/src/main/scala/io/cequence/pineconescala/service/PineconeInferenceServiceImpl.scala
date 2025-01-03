@@ -1,16 +1,15 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import io.cequence.pineconescala.domain.response.{EvaluateResponse, GenerateEmbeddingsResponse, RerankResponse}
+import io.cequence.pineconescala.domain.response.{EmbeddingsResponse, EvaluateResponse, RerankResponse}
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, RerankSettings}
 import io.cequence.wsclient.ResponseImplicits._
 import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.wsclient.domain.WsRequestContext
+import io.cequence.wsclient.domain.{Response, WsRequestContext}
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
-import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,8 +33,8 @@ private class PineconeInferenceServiceImpl(
     coreUrl = "https://", // TODO: change to regularURL eventually
     requestContext = WsRequestContext(
       authHeaders = Seq(
-        ("Api-Key", apiKey),
-        ("X-Pinecone-API-Version", "2024-10")
+        "Api-Key" -> apiKey,
+        "X-Pinecone-API-Version" -> "2024-10"
       ),
       explTimeouts = explicitTimeouts
     )
@@ -53,7 +52,23 @@ private class PineconeInferenceServiceImpl(
   override def createEmbeddings(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings
-  ): Future[GenerateEmbeddingsResponse] =
+  ): Future[EmbeddingsResponse.Dense] =
+    createSparseEmbeddingsAux(inputs, settings).map(
+      _.asSafeJson[EmbeddingsResponse.Dense]
+    )
+
+  override def createSparseEmbeddings(
+    inputs: Seq[String],
+    settings: GenerateEmbeddingsSettings
+  ): Future[EmbeddingsResponse.Sparse] =
+    createSparseEmbeddingsAux(inputs, settings).map(
+      _.asSafeJson[EmbeddingsResponse.Sparse]
+    )
+
+  private def createSparseEmbeddingsAux(
+    inputs: Seq[String],
+    settings: GenerateEmbeddingsSettings
+  ): Future[Response] =
     execPOST(
       EndPoint.embed(regularURL),
       bodyParams = jsonBodyParams(
@@ -64,12 +79,11 @@ private class PineconeInferenceServiceImpl(
         Tag.parameters -> Some(
           Map(
             "input_type" -> settings.input_type.map(_.toString),
-            "truncate" -> settings.truncate.toString
+            "truncate" -> settings.truncate.toString,
+            "return_tokens" -> settings.return_tokens
           )
         )
       )
-    ).map(
-      _.asSafeJson[GenerateEmbeddingsResponse]
     )
 
   /**
