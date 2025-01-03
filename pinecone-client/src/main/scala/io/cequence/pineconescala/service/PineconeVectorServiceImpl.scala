@@ -43,8 +43,11 @@ private class PineconeVectorServiceImpl(
   // we use play-ws backend
   override protected val engine: WSClientEngine = PlayWSClientEngine(
     coreUrl,
-    requestContext =  WsRequestContext(
-      authHeaders = Seq(("Api-Key", apiKey)),
+    requestContext = WsRequestContext(
+      authHeaders = Seq(
+        "Api-Key" -> apiKey,
+        "X-Pinecone-API-Version" -> "2024-10"
+      ),
       explTimeouts = explicitTimeouts
     )
   )
@@ -57,6 +60,7 @@ private class PineconeVectorServiceImpl(
   override def query(
     vector: Seq[Double],
     namespace: String,
+    sparseVector: Option[SparseVector],
     settings: QuerySettings
   ): Future[QueryResponse] =
     execPOST(
@@ -68,7 +72,7 @@ private class PineconeVectorServiceImpl(
         Tag.filter -> (if (settings.filter.nonEmpty) Some(settings.filter) else None),
         Tag.includeValues -> Some(settings.includeValues),
         Tag.includeMetadata -> Some(settings.includeMetadata),
-        Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat))
+        Tag.sparseVector -> sparseVector.map(Json.toJson(_)(sparseVectorFormat))
       )
     ).map(
       _.asSafeJson[QueryResponse]
@@ -87,12 +91,37 @@ private class PineconeVectorServiceImpl(
         Tag.topK -> Some(settings.topK),
         Tag.filter -> (if (settings.filter.nonEmpty) Some(settings.filter) else None),
         Tag.includeValues -> Some(settings.includeValues),
-        Tag.includeMetadata -> Some(settings.includeMetadata),
-        Tag.sparseVector -> settings.sparseVector.map(Json.toJson(_)(sparseVectorFormat))
+        Tag.includeMetadata -> Some(settings.includeMetadata)
       )
     ).map(
       _.asSafeJson[QueryResponse]
     )
+
+  override def listAllVectorsIDs(
+    namespace: String,
+    batchLimit: Option[Int],
+    prefix: Option[String]
+  ): Future[Seq[VectorId]] = {
+
+    // aux recursive function
+    def listVectorsAux(
+      namespace: String,
+      paginationToken: Option[String] = None
+    ): Future[Seq[VectorId]] = {
+      listVectorIDs(namespace, batchLimit, paginationToken, prefix).flatMap { response =>
+        val nextToken = response.pagination.flatMap(_.next)
+        nextToken.map { nextToken =>
+          listVectorsAux(namespace, Some(nextToken)).map { vectors =>
+            response.vectors ++ vectors
+          }
+        }.getOrElse(
+          Future.successful(response.vectors)
+        )
+      }
+    }
+
+    listVectorsAux(namespace)
+  }
 
   override def listVectorIDs(
     namespace: String,
