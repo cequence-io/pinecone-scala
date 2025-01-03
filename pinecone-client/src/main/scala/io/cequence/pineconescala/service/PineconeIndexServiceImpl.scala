@@ -255,7 +255,10 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   override protected val engine: WSClientEngine = PlayWSClientEngine(
     coreUrl,
     requestContext = WsRequestContext(
-      authHeaders = Seq(("Api-Key", apiKey)),
+      authHeaders = Seq(
+        "Api-Key" -> apiKey,
+        "X-Pinecone-API-Version" -> "2024-10"
+      ),
       explTimeouts = explicitTimeouts
     )
   )

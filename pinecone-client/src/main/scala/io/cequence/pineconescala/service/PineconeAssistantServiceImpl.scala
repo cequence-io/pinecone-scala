@@ -1,7 +1,6 @@
 package io.cequence.pineconescala.service
 
 import akka.stream.Materializer
-import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.{
   Assistant,
   DeleteResponse,
@@ -35,7 +34,7 @@ class PineconeAssistantServiceImpl(
     requestContext = WsRequestContext(
       authHeaders = Seq(
         ("Api-Key", apiKey),
-        ("X-Pinecone-API-Version", "2024-07")
+        ("X-Pinecone-API-Version", "2024-10")
       ),
       explTimeouts = explicitTimeouts
     )
