@@ -4,7 +4,8 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
-import io.cequence.pineconescala.service.PineconeVectorServiceFactory
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
+import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconeVectorServiceFactory}
 
 import scala.concurrent.ExecutionContext
 import scala.util.Random
@@ -15,11 +16,18 @@ object PineconeVectorLongDemo extends App {
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val materializer: Materializer = Materializer(ActorSystem())
 
-  private val indexName = "auto-gpt-test"
+  private val indexName = "auto-gpt"
   private val testIds = Seq("666", "667")
+  private val namespace = "test"
+
+  val pineconeIndexService = PineconeIndexServiceFactory().asOne
 
   {
     for {
+      indexes <- pineconeIndexService.listIndexes
+
+      _ = println(s"Indexes: ${indexes.mkString(", ")}")
+
       pineconeVectorService <- PineconeVectorServiceFactory(indexName).map(
         _.getOrElse(throw new IllegalArgumentException(s"index '${indexName}' not found"))
       )
@@ -59,21 +67,27 @@ object PineconeVectorLongDemo extends App {
             )
           )
         ),
-        namespace = "my_namespace"
+        namespace
       )
 
       _ = println(s"Upserted ${vectorUpsertedCount} vectors.")
 
       fetchResponse <- pineconeVectorService.fetch(
         ids = testIds,
-        namespace = "my_namespace"
+        namespace
       )
 
       _ = println(s"Fetched ${fetchResponse.vectors.keySet.size} vectors.")
 
       queryResponse <- pineconeVectorService.query(
         vector = fetchResponse.vectors(testIds(0)).values,
-        namespace = "my_namespace",
+        namespace,
+        sparseVector = Some(
+          SparseVector(
+            indices = Seq(4, 5, 6),
+            values = Seq(-0.12, 0.57, 0.69)
+          )
+        ),
         settings = QuerySettings(
           topK = 5,
           includeValues = true,
@@ -85,7 +99,7 @@ object PineconeVectorLongDemo extends App {
 
       queryResponse2 <- pineconeVectorService.queryById(
         id = testIds(0),
-        namespace = "my_namespace",
+        namespace,
         settings = QuerySettings(
           topK = 5,
           includeValues = true,
@@ -97,7 +111,7 @@ object PineconeVectorLongDemo extends App {
 
       _ <- pineconeVectorService.update(
         id = testIds(0),
-        namespace = "my_namespace",
+        namespace,
         values = fetchResponse.vectors(testIds(0)).values.map(_ / 100),
         sparseValues = Some(
           SparseVector(
@@ -114,21 +128,21 @@ object PineconeVectorLongDemo extends App {
 
       fetchResponse2 <- pineconeVectorService.fetch(
         ids = Seq(testIds(0)),
-        namespace = "my_namespace"
+        namespace
       )
 
       _ = println(s"Fetched ${fetchResponse2.vectors.keySet.size} vectors.")
 
       _ <- pineconeVectorService.delete(
         ids = testIds,
-        namespace = "my_namespace"
+        namespace
       )
 
       _ = println(s"Delete finished.")
 
       fetchResponse3 <- pineconeVectorService.fetch(
         ids = testIds,
-        namespace = "my_namespace"
+        namespace
       )
 
       _ = println(s"Fetched ${fetchResponse3.vectors.keySet.size} vectors after delete.")

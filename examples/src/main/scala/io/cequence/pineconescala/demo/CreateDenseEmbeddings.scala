@@ -1,7 +1,10 @@
 package io.cequence.pineconescala.demo
 
+import io.cequence.pineconescala.domain.EmbeddingModelId
+import io.cequence.pineconescala.domain.settings.{EmbeddingsInputType, GenerateEmbeddingsSettings}
+
 // run me - env. variable PINECONE_SCALA_CLIENT_API_KEY must be set
-object CreateEmbeddings extends PineconeDemoApp {
+object CreateDenseEmbeddings extends PineconeDemoApp {
 
   override protected def exec = {
     pineconeInferenceService.createEmbeddings(
@@ -9,6 +12,10 @@ object CreateEmbeddings extends PineconeDemoApp {
         "What are the capital cities of France, England and Spain?",
         "Paris is the capital city of France and Barcelona of Spain",
         "Paris is the capital city of France, London of England and Madrid of Spain"
+      ),
+      settings = GenerateEmbeddingsSettings(
+        model = EmbeddingModelId.multilingual_e5_large,
+        input_type = Some(EmbeddingsInputType.Query)
       )
     ).map { response =>
       println(response)
