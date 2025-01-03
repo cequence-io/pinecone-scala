@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.domain
 
 case class SparseVector(
-  indices: Seq[Int],
+  indices: Seq[Long],
   values: Seq[Double]
 )
