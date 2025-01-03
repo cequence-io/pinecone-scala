@@ -10,7 +10,11 @@ case class GenerateEmbeddingsSettings(
   input_type: Option[EmbeddingsInputType] = None,
 
   // The number of dimensions the resulting output embeddings should have. Only supported in text-embedding-3 and later models.
-  truncate: EmbeddingsTruncate = EmbeddingsTruncate.End
+  truncate: EmbeddingsTruncate = EmbeddingsTruncate.End,
+
+  // TODO: is it even supported?
+  @Deprecated
+  return_tokens: Boolean = false
 ) {
   def withPassageInputType = copy(input_type = Some(EmbeddingsInputType.Passage))
   def withQueryInputType = copy(input_type = Some(EmbeddingsInputType.Query))

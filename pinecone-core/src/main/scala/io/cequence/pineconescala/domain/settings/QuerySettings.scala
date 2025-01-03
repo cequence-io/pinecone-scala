@@ -14,9 +14,5 @@ case class QuerySettings(
   includeValues: Boolean,
 
   // Indicates whether metadata is included in the response as well as the ids.
-  includeMetadata: Boolean,
-
-  // Vector sparse data.
-  // Represented as a list of indices and a list of corresponded values, which must be the same length.
-  sparseVector: Option[SparseVector] = None,
+  includeMetadata: Boolean
 )
