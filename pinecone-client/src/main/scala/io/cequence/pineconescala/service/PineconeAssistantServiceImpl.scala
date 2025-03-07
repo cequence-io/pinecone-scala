@@ -34,7 +34,7 @@ class PineconeAssistantServiceImpl(
     requestContext = WsRequestContext(
       authHeaders = Seq(
         ("Api-Key", apiKey),
-        ("X-Pinecone-API-Version", "2024-10")
+        ("X-Pinecone-API-Version", apiVersion)
       ),
       explTimeouts = explicitTimeouts
     )

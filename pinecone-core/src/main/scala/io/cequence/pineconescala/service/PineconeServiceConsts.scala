@@ -13,6 +13,8 @@ trait PineconeServiceConsts {
 
   protected val configFileName = "pinecone-scala-client.conf"
 
+  protected val apiVersion = "2025-01"
+
   object DefaultSettings {
 
     val Query = QuerySettings(
