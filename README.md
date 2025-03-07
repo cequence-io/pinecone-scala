@@ -1,5 +1,5 @@
 # Pinecone Scala Client 🗂️
-[![version](https://img.shields.io/badge/version-1.3.0-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
+[![version](https://img.shields.io/badge/version-1.3.1-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
 
 This is an intuitive async full-fledged Scala client for Pinecone API supporting all the available index, vector, collection, inference and assistant operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
@@ -24,7 +24,7 @@ The currently supported Scala versions are **2.12, 2.13**, and **3**.
 To pull the library you have to add the following dependency to your *build.sbt*
 
 ```
-"io.cequence" %% "pinecone-scala-client" % "1.3.0"
+"io.cequence" %% "pinecone-scala-client" % "1.3.1"
 ```
 
 or to *pom.xml* (if you use maven)
@@ -33,7 +33,7 @@ or to *pom.xml* (if you use maven)
 <dependency>
     <groupId>io.cequence</groupId>
     <artifactId>pinecone-scala-client_2.12</artifactId>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
 </dependency>
 ```
 
@@ -561,7 +561,7 @@ pinecone-scala-client {
 }
 ```
 
-2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/1.3.0/pinecone-scala-client_2.13-1.3.0.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
+2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/1.3.1/pinecone-scala-client_2.13-1.3.1.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
 
    Set the env. variable `PINECONE_SCALA_CLIENT_API_KEY`. If you don't have one register [here](https://app.pinecone.io/?sessionType=signup).
 

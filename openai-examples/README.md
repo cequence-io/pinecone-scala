@@ -6,7 +6,7 @@ This is a ready-to-fork, example/demo project demonstrating how to use [Pinecone
 The demo app can be found in [PineconeOpenAIDemo](./src/main/scala/io/cequence/pineconeopenai/demo/PineconeOpenAIDemo.scala).
 The following env. variables are expected:
 - `PINECONE_SCALA_CLIENT_API_KEY`
-- `PINECONE_SCALA_CLIENT_ENV`
+- `PINECONE_SCALA_CLIENT_ENV` (optional)
 - `OPENAI_SCALA_CLIENT_API_KEY`
 - `OPENAI_SCALA_CLIENT_ORG_ID` (optional)
 
