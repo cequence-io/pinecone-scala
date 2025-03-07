@@ -14,7 +14,7 @@ object CreateDenseEmbeddings extends PineconeDemoApp {
         "Paris is the capital city of France, London of England and Madrid of Spain"
       ),
       settings = GenerateEmbeddingsSettings(
-        model = EmbeddingModelId.multilingual_e5_large,
+        model = EmbeddingModelId.llama_text_embed_v2,
         input_type = Some(EmbeddingsInputType.Query)
       )
     ).map { response =>
