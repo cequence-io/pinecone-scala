@@ -94,7 +94,7 @@ class PineconeAssistantFileServiceImpl(
       // FIXME: provide support for end point param followed by URL suffix
       endPointParam = Some(s"$assistantName/chat/completions"),
       bodyParams = jsonBodyParams(
-        Tag.messages -> Some(Json.toJson(messages.map(UserMessage)))
+        Tag.messages -> Some(Json.toJson(messages.map(UserMessage.apply)))
       )
     ).map(_.asSafeJson[ChatCompletionResponse])
 
