@@ -14,7 +14,10 @@ case class GenerateEmbeddingsSettings(
 
   // TODO: is it even supported?
   @Deprecated
-  return_tokens: Boolean = false
+  return_tokens: Option[Boolean] = None,
+
+  // Dimension of the vector to return. Supported by Dense: llama-text-embed-v2
+  dimension: Option[Int] = None,
 ) {
   def withPassageInputType = copy(input_type = Some(EmbeddingsInputType.Passage))
   def withQueryInputType = copy(input_type = Some(EmbeddingsInputType.Query))
