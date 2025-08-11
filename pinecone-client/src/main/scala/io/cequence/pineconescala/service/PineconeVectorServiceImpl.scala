@@ -234,7 +234,14 @@ private class PineconeVectorServiceImpl(
     httpCode: Int,
     message: String
   ): Nothing =
-    throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
+    httpCode match {
+      // {"code":3,"message":"Metadata size is 52722 bytes, which exceeds the limit of 40960 bytes per vector","details":[]
+      case 400 if message.contains("\"code\":3") && message.contains("exceeds the limit") =>
+        throw new PineconeScalaClientMetadataSizeExceededException(message)
+
+      case _ =>
+        throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
+    }
 }
 
 object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {

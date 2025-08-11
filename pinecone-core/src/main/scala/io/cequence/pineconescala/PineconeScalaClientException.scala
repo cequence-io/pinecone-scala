@@ -4,6 +4,10 @@ class PineconeScalaClientException(message: String, cause: Throwable) extends Ru
   def this(message: String) = this(message, null)
 }
 
+class PineconeScalaClientMetadataSizeExceededException(message: String, cause: Throwable) extends PineconeScalaClientException(message, cause) {
+  def this(message: String) = this(message, null)
+}
+
 class PineconeScalaClientTimeoutException(message: String, cause: Throwable) extends PineconeScalaClientException(message, cause) {
   def this(message: String) = this(message, null)
 }
