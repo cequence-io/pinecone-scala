@@ -15,10 +15,12 @@ object CreateDenseEmbeddings extends PineconeDemoApp {
       ),
       settings = GenerateEmbeddingsSettings(
         model = EmbeddingModelId.llama_text_embed_v2,
-        input_type = Some(EmbeddingsInputType.Query)
+        input_type = Some(EmbeddingsInputType.Query),
+        dimension = Some(2048)
       )
     ).map { response =>
       println(response)
+      println("Dims: " + response.data.map(_.values.size).mkString(", "))
     }
   }
 }

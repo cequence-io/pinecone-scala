@@ -16,7 +16,7 @@ object CreateSparseEmbeddings extends PineconeDemoApp {
       settings = GenerateEmbeddingsSettings(
         model = EmbeddingModelId.pinecone_sparse_english_v0,
         input_type = Some(EmbeddingsInputType.Passage),
-        return_tokens = true
+        return_tokens = Some(true)
       )
     ).map { response =>
       response.data.foreach { data =>

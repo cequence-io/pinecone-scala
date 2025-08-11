@@ -55,12 +55,12 @@ object PineconeVectorLongDemo extends App {
           PVector(
             id = testIds(1),
             values = Seq.fill(stats.dimension)(Random.nextDouble),
-            sparseValues = Some(
-              SparseVector(
-                indices = Seq(4, 5, 6),
-                values = Seq(-0.12, 0.57, 0.69)
-              )
-            ),
+//            sparseValues = Some(
+//              SparseVector(
+//                indices = Seq(4, 5, 6),
+//                values = Seq(-0.12, 0.57, 0.69)
+//              )
+//            ),
             metadata = Map(
               "is_relevant" -> "very much so",
               "food_quality" -> "burritos are the best!"
@@ -77,17 +77,17 @@ object PineconeVectorLongDemo extends App {
         namespace
       )
 
-      _ = println(s"Fetched ${fetchResponse.vectors.keySet.size} vectors.")
+      _ = println(s"Fetched ${fetchResponse.vectors.keySet.size} vectors: ${fetchResponse.vectors.keySet.mkString(", ")}")
 
       queryResponse <- pineconeVectorService.query(
         vector = fetchResponse.vectors(testIds(0)).values,
         namespace,
-        sparseVector = Some(
-          SparseVector(
-            indices = Seq(4, 5, 6),
-            values = Seq(-0.12, 0.57, 0.69)
-          )
-        ),
+//        sparseVector = Some(
+//          SparseVector(
+//            indices = Seq(4, 5, 6),
+//            values = Seq(-0.12, 0.57, 0.69)
+//          )
+//        ),
         settings = QuerySettings(
           topK = 5,
           includeValues = true,
@@ -124,14 +124,31 @@ object PineconeVectorLongDemo extends App {
         )
       )
 
-      _ = println(s"Update finished.")
+      _ = println(s"Update finished. Updated ${updateResponse} vectors.")
+//      _ <- pineconeVectorService.update(
+//        id = testIds(0),
+//        namespace,
+//        values = fetchResponse.vectors(testIds(0)).values.map(_ / 100),
+//        sparseValues = Some(
+//          SparseVector(
+//            indices = Seq(1, 2, 3),
+//            values = Seq(8.8, 7.7, 2.2)
+//          )
+//        ),
+//        setMetaData = Map(
+//          "solid_info" -> "this is the source of the truth"
+//        )
+//      )
+
+      _ = println(s"Metadata update finished.")
 
       fetchResponse2 <- pineconeVectorService.fetch(
         ids = Seq(testIds(0)),
         namespace
       )
 
-      _ = println(s"Fetched ${fetchResponse2.vectors.keySet.size} vectors.")
+      _ = println(fetchResponse.vectors(testIds(0)).values.mkString(", "))
+      _ = println(s"Fetched ${fetchResponse2.vectors.keySet.size} vectors.\n${fetchResponse2.vectors.head._2.values.mkString(", ")}\n${fetchResponse2.vectors.head._2.metadata}")
 
       _ <- pineconeVectorService.delete(
         ids = testIds,
