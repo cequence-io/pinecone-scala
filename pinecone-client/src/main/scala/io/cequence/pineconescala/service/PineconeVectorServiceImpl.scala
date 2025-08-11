@@ -3,7 +3,7 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
-import io.cequence.pineconescala.PineconeScalaClientException
+import io.cequence.pineconescala.{PineconeScalaClientException, PineconeScalaClientMetadataSizeExceededException}
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
@@ -198,17 +198,17 @@ private class PineconeVectorServiceImpl(
     values: Seq[Double],
     sparseValues: Option[SparseVector],
     setMetaData: Map[String, String]
-  ): Future[Unit] =
+  ): Future[String] =
     execPOST(
       EndPoint.vectors_update,
       bodyParams = jsonBodyParams(
         Tag.id -> Some(id),
         Tag.namespace -> Some(namespace),
-        Tag.values -> Some(values),
+        Tag.values -> (if (values.nonEmpty) Some(values) else None),
         Tag.sparseValues -> sparseValues.map(Json.toJson(_)),
         Tag.setMetadata -> (if (setMetaData.nonEmpty) Some(setMetaData) else None)
       )
-    ).map(_ => ())
+    ).map(_.string)
 
   override def upsert(
     vectors: Seq[PVector],

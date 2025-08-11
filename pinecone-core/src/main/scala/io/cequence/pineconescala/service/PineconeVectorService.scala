@@ -211,7 +211,7 @@ trait PineconeVectorService extends PineconeServiceConsts {
     values: Seq[Double],
     sparseValues: Option[SparseVector] = None,
     setMetaData: Map[String, String] = Map()
-  ): Future[Unit]
+  ): Future[String]
 
   /**
    * The Upsert operation writes vectors into a namespace. If a new value is upserted for an
