@@ -13,7 +13,7 @@ trait PineconeServiceConsts {
 
   protected val configFileName = "pinecone-scala-client.conf"
 
-  protected val apiVersion = "2025-01"
+  protected val apiVersion = "2025-04" // "2025-01"
 
   object DefaultSettings {
 
