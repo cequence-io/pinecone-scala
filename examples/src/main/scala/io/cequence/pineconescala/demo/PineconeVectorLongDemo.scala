@@ -109,7 +109,7 @@ object PineconeVectorLongDemo extends App {
 
       _ = println(s"Query by id matched ${queryResponse2.matches.size} vectors.")
 
-      _ <- pineconeVectorService.update(
+      updateResponse <- pineconeVectorService.update(
         id = testIds(0),
         namespace,
         values = fetchResponse.vectors(testIds(0)).values.map(_ / 100),
