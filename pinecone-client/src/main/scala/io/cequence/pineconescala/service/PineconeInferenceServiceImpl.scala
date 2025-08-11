@@ -53,7 +53,7 @@ private class PineconeInferenceServiceImpl(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings
   ): Future[EmbeddingsResponse.Dense] =
-    createSparseEmbeddingsAux(inputs, settings).map(
+    createDenseSparseEmbeddingsAux(inputs, settings).map(
       _.asSafeJson[EmbeddingsResponse.Dense]
     )
 
@@ -61,11 +61,11 @@ private class PineconeInferenceServiceImpl(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings
   ): Future[EmbeddingsResponse.Sparse] =
-    createSparseEmbeddingsAux(inputs, settings).map(
+    createDenseSparseEmbeddingsAux(inputs, settings).map(
       _.asSafeJson[EmbeddingsResponse.Sparse]
     )
 
-  private def createSparseEmbeddingsAux(
+  private def createDenseSparseEmbeddingsAux(
     inputs: Seq[String],
     settings: GenerateEmbeddingsSettings
   ): Future[Response] =
@@ -80,7 +80,8 @@ private class PineconeInferenceServiceImpl(
           Map(
             "input_type" -> settings.input_type.map(_.toString),
             "truncate" -> settings.truncate.toString,
-            "return_tokens" -> settings.return_tokens
+            "return_tokens" -> settings.return_tokens,
+            "dimension" -> settings.dimension
           )
         )
       )
