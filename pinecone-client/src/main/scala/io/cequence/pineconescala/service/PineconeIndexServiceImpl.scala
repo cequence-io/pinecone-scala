@@ -175,7 +175,7 @@ private final class PineconePodPineconeBasedImpl(
     replicas: Option[Int],
     podType: Option[PodType]
   ): Future[ConfigureIndexResponse] =
-    execPATCRich(
+    execPATCHRich(
       indexesEndpoint,
       endPointParam = Some(indexName),
       bodyParams = jsonBodyParams(
