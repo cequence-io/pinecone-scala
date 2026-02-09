@@ -7,7 +7,7 @@ val scala32 = "3.2.2"
 val scala33 = "3.3.1"
 
 ThisBuild / organization := "io.cequence"
-ThisBuild / scalaVersion := scala212
+ThisBuild / scalaVersion := scala213
 ThisBuild / version := "1.3.4"
 ThisBuild / isSnapshot := false
 
