@@ -4,4 +4,4 @@ name := "pinecone-scala-core"
 
 description := "Core module of Pinecone Scala client"
 
-libraryDependencies += "io.cequence" %% "ws-client-core" % wsClient
+libraryDependencies += "io.cequence" %% "ws-client-core-akka" % wsClient
