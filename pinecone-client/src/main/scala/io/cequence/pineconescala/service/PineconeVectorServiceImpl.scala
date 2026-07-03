@@ -3,7 +3,7 @@ package io.cequence.pineconescala.service
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
-import io.cequence.pineconescala.{PineconeScalaClientException, PineconeScalaClientMetadataSizeExceededException}
+import io.cequence.pineconescala.{PineconeScalaClientException, PineconeScalaClientMetadataSizeExceededException, PineconeScalaClientRequestSizeExceededException}
 import io.cequence.pineconescala.domain.response._
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
@@ -238,6 +238,10 @@ private class PineconeVectorServiceImpl(
       // {"code":3,"message":"Metadata size is 52722 bytes, which exceeds the limit of 40960 bytes per vector","details":[]
       case 400 if message.contains("\"code\":3") && message.contains("exceeds the limit") =>
         throw new PineconeScalaClientMetadataSizeExceededException(message)
+
+      // {"code":11,"message":"Error, decoded message length too large: found 5465552 bytes, the limit is: 4194304 bytes","details":[]}
+      case 400 if message.contains("\"code\":11") && message.contains("message length too large") =>
+        throw new PineconeScalaClientRequestSizeExceededException(message)
 
       case _ =>
         throw new PineconeScalaClientException(s"Code ${httpCode} : ${message}")
