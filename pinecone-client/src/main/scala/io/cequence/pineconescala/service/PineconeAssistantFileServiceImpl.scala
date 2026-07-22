@@ -134,4 +134,13 @@ object PineconeAssistantFileServiceFactory
     materializer: Materializer
   ): PineconeAssistantFileService =
     new PineconeAssistantFileServiceImpl(apiKey, timeouts)
+
+  def withEngine(
+    engine: WSClientEngine,
+    apiKey: String
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeAssistantFileService =
+    new PineconeAssistantFileServiceImpl(apiKey, externalEngine = Some(engine))
 }

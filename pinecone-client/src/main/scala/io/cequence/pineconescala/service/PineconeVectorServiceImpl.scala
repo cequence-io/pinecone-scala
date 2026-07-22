@@ -295,6 +295,30 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
       .describeIndex(indexName)
       .map(_.map(indexInfo => apply(apiKey, s"https://${indexInfo.host}", timeouts)))
 
+  /**
+   * Like `apply(indexName, config)` but runs on the given (shared, externally-owned) engine:
+   * both the transient index lookup (`describeIndex`) and the returned vector service use it,
+   * so no private HTTP transport is created. Timeouts come from the engine's transport
+   * settings; the caller owns the engine and closes it - `close()` on the returned service is
+   * a no-op transport-wise.
+   */
+  def withEngine(
+    engine: WSClientEngine,
+    indexName: String,
+    config: Config
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): Future[Option[PineconeVectorService]] = {
+    val apiKey = config.getString(s"$configPrefix.apiKey")
+    val indexService =
+      PineconeIndexServiceFactory.withEngine(engine, apiKey, loadPodEnv(config)).asOne
+
+    indexService
+      .describeIndex(indexName)
+      .map(_.map(indexInfo => withEngine(engine, apiKey, s"https://${indexInfo.host}")))
+  }
+
   def apply(
     apiKey: String,
     indexHostURL: String,
@@ -306,5 +330,22 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     val indexHostURLWithEndingSlash =
       if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
     new PineconeVectorServiceImpl(apiKey, indexHostURLWithEndingSlash, timeouts)
+  }
+
+  def withEngine(
+    engine: WSClientEngine,
+    apiKey: String,
+    indexHostURL: String
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeVectorService = {
+    val indexHostURLWithEndingSlash =
+      if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
+    new PineconeVectorServiceImpl(
+      apiKey,
+      indexHostURLWithEndingSlash,
+      externalEngine = Some(engine)
+    )
   }
 }

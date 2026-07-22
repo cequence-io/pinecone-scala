@@ -166,4 +166,13 @@ object PineconeInferenceServiceFactory
     materializer: Materializer
   ): PineconeInferenceService =
     new PineconeInferenceServiceImpl(apiKey, timeouts)
+
+  def withEngine(
+    engine: WSClientEngine,
+    apiKey: String
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeInferenceService =
+    new PineconeInferenceServiceImpl(apiKey, externalEngine = Some(engine))
 }

@@ -448,6 +448,21 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
         Right(new ServerlessIndexServiceImpl(apiKey, timeouts))
     }
 
+  def withEngine(
+    engine: WSClientEngine,
+    apiKey: String,
+    environment: Option[String]
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] =
+    environment match {
+      case Some(podEnv) =>
+        Left(new PineconePodPineconeBasedImpl(apiKey, podEnv, externalEngine = Some(engine)))
+      case None =>
+        Right(new ServerlessIndexServiceImpl(apiKey, externalEngine = Some(engine)))
+    }
+
   // if we don't care whether it's pod-based or serverless
   implicit class FactoryImplicits(
     either: Either[PineconePodBasedIndexService, PineconeServerlessIndexService]

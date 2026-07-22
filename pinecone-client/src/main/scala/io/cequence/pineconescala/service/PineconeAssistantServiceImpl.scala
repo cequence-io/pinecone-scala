@@ -110,4 +110,13 @@ object PineconeAssistantServiceFactory
   ): PineconeAssistantService = {
     new PineconeAssistantServiceImpl(apiKey, timeouts)
   }
+
+  def withEngine(
+    engine: WSClientEngine,
+    apiKey: String
+  )(
+    implicit ec: ExecutionContext,
+    materializer: Materializer
+  ): PineconeAssistantService =
+    new PineconeAssistantServiceImpl(apiKey, externalEngine = Some(engine))
 }
