@@ -4,10 +4,11 @@ import akka.stream.Materializer
 import io.cequence.pineconescala.domain.response.{EmbeddingsResponse, EvaluateResponse, RerankResponse}
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, RerankSettings}
 import io.cequence.wsclient.ResponseImplicits._
-import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
+import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
+import io.cequence.wsclient.service.ws.Timeouts
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
-import io.cequence.wsclient.domain.{Response, WsRequestContext}
+import io.cequence.wsclient.domain.{Response, SiteBinding, WsRequestContext}
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
 
@@ -15,7 +16,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 private class PineconeInferenceServiceImpl(
   apiKey: String,
-  explicitTimeouts: Option[Timeouts] = None
+  explicitTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -28,15 +30,20 @@ private class PineconeInferenceServiceImpl(
   private val regularURL = "api.pinecone.io/"
   private val prodURL = "prod-1-data.ke.pinecone.io/"
 
-  // we use play-ws backend
-  override protected val engine: WSClientEngine = PlayWSClientEngine(
+  // classpath-discovered engine
+  override protected val engine: WSClientEngine = externalEngine.getOrElse(
+    WSClientEngineRegistry(TransportSettings(timeouts = explicitTimeouts.getOrElse(Timeouts())))
+  )
+
+  override protected def ownsEngine: Boolean = externalEngine.isEmpty
+
+  override protected val site: SiteBinding = SiteBinding(
     coreUrl = "https://", // TODO: change to regularURL eventually
     requestContext = WsRequestContext(
       authHeaders = Seq(
         "Api-Key" -> apiKey,
         "X-Pinecone-API-Version" -> apiVersion
-      ),
-      explTimeouts = explicitTimeouts
+      )
     )
   )
 

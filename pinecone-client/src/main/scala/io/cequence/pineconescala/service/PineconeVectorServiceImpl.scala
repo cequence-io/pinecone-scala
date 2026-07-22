@@ -10,10 +10,11 @@ import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
-import io.cequence.wsclient.domain.WsRequestContext
+import io.cequence.wsclient.domain.{SiteBinding, WsRequestContext}
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
-import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
+import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
+import io.cequence.wsclient.service.ws.Timeouts
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,7 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 private class PineconeVectorServiceImpl(
   apiKey: String,
   coreUrl: String,
-  explicitTimeouts: Option[Timeouts] = None
+  explicitTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -40,15 +42,20 @@ private class PineconeVectorServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  // we use play-ws backend
-  override protected val engine: WSClientEngine = PlayWSClientEngine(
+  // classpath-discovered engine
+  override protected val engine: WSClientEngine = externalEngine.getOrElse(
+    WSClientEngineRegistry(TransportSettings(timeouts = explicitTimeouts.getOrElse(Timeouts())))
+  )
+
+  override protected def ownsEngine: Boolean = externalEngine.isEmpty
+
+  override protected val site: SiteBinding = SiteBinding(
     coreUrl,
     requestContext = WsRequestContext(
       authHeaders = Seq(
         "Api-Key" -> apiKey,
         "X-Pinecone-API-Version" -> apiVersion
-      ),
-      explTimeouts = explicitTimeouts
+      )
     )
   )
 

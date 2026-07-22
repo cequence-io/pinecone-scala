@@ -13,17 +13,19 @@ import io.cequence.pineconescala.domain.settings._
 import io.cequence.pineconescala.domain.PodType
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
-import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
+import io.cequence.wsclient.domain.{RichResponse, SiteBinding, WsRequestContext}
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
-import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
+import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
+import io.cequence.wsclient.service.ws.Timeouts
 import play.api.libs.json.JsValue
 
 import scala.concurrent.{ExecutionContext, Future}
 
 private final class ServerlessIndexServiceImpl(
   apiKey: String,
-  explTimeouts: Option[Timeouts] = None
+  explTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   override implicit val ec: ExecutionContext,
   override val materializer: Materializer
@@ -31,7 +33,8 @@ private final class ServerlessIndexServiceImpl(
       apiKey,
       None,
       coreUrl = "https://api.pinecone.io/",
-      explTimeouts
+      explTimeouts,
+      externalEngine
     )(ec, materializer)
     with PineconeServerlessIndexService {
 
@@ -102,7 +105,8 @@ private final class ServerlessIndexServiceImpl(
 private final class PineconePodPineconeBasedImpl(
   apiKey: String,
   environment: String,
-  explTimeouts: Option[Timeouts] = None
+  explTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   override implicit val ec: ExecutionContext,
   override val materializer: Materializer
@@ -110,7 +114,8 @@ private final class PineconePodPineconeBasedImpl(
       apiKey,
       Some(environment),
       coreUrl = s"https://controller.${environment}.pinecone.io/",
-      explTimeouts
+      explTimeouts,
+      externalEngine
     )(ec, materializer)
     with PineconePodBasedIndexService {
 
@@ -241,7 +246,8 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   apiKey: String,
   environment: Option[String],
   coreUrl: String,
-  explicitTimeouts: Option[Timeouts] = None
+  explicitTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -251,15 +257,20 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  // we use play-ws backend
-  override protected val engine: WSClientEngine = PlayWSClientEngine(
+  // classpath-discovered engine
+  override protected val engine: WSClientEngine = externalEngine.getOrElse(
+    WSClientEngineRegistry(TransportSettings(timeouts = explicitTimeouts.getOrElse(Timeouts())))
+  )
+
+  override protected def ownsEngine: Boolean = externalEngine.isEmpty
+
+  override protected val site: SiteBinding = SiteBinding(
     coreUrl,
     requestContext = WsRequestContext(
       authHeaders = Seq(
         "Api-Key" -> apiKey,
         "X-Pinecone-API-Version" -> apiVersion
-      ),
-      explTimeouts = explicitTimeouts
+      )
     )
   )
 

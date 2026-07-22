@@ -10,8 +10,9 @@ import io.cequence.pineconescala.domain.response.{
   UserMessage
 }
 import io.cequence.wsclient.ResponseImplicits.JsonSafeOps
-import io.cequence.wsclient.domain.{RichResponse, WsRequestContext}
-import io.cequence.wsclient.service.ws.{PlayWSClientEngine, Timeouts}
+import io.cequence.wsclient.domain.{RichResponse, SiteBinding, WsRequestContext}
+import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
+import io.cequence.wsclient.service.ws.Timeouts
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
@@ -23,7 +24,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PineconeAssistantFileServiceImpl(
   apiKey: String,
-  explicitTimeouts: Option[Timeouts] = None
+  explicitTimeouts: Option[Timeouts] = None,
+  externalEngine: Option[WSClientEngine] = None
 )(
   implicit val ec: ExecutionContext,
   val materializer: Materializer
@@ -33,15 +35,20 @@ class PineconeAssistantFileServiceImpl(
   override protected type PEP = EndPoint
   override protected type PT = Tag
 
-  // we use play-ws backend
-  override protected val engine: WSClientEngine = PlayWSClientEngine(
+  // classpath-discovered engine
+  override protected val engine: WSClientEngine = externalEngine.getOrElse(
+    WSClientEngineRegistry(TransportSettings(timeouts = explicitTimeouts.getOrElse(Timeouts())))
+  )
+
+  override protected def ownsEngine: Boolean = externalEngine.isEmpty
+
+  override protected val site: SiteBinding = SiteBinding(
     coreUrl = "https://prod-1-data.ke.pinecone.io/",
     requestContext = WsRequestContext(
       authHeaders = Seq(
         ("Api-Key", apiKey)
         // ("X-Pinecone-API-Version", apiVersion)
-      ),
-      explTimeouts = explicitTimeouts
+      )
     )
   )
 
