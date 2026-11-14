@@ -3,7 +3,7 @@ package io.cequence.pineconescala.service
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
-import io.cequence.pineconescala.domain.response.{FetchResponse, QueryResponse}
+import io.cequence.pineconescala.domain.response.{DeleteResponse, FetchResponse, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import org.scalatest.matchers.must.Matchers.contain
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
@@ -181,6 +181,33 @@ class ServerlessPineconeVectorServiceImplSpec
         fetchedVector.namespace shouldEqual namespace
         fetchedVector.vectors.size shouldEqual 1
         fetchedVector.vectors(testIds(1)).id shouldEqual vector2.id
+      }
+    }
+
+    "deleteNamespace should remove the namespace itself" in withVectorStore { service =>
+      val tempNamespace = s"$namespace-ns"
+
+      def namespaceNames =
+        service.listAllNamespaces().map(_.map(_.name))
+
+      // namespace operations are eventually consistent
+      def waitFor(check: Seq[String] => Boolean, attempts: Int = 30): Future[Seq[String]] =
+        namespaceNames.flatMap { names =>
+          if (check(names) || attempts <= 1) Future.successful(names)
+          else { Thread.sleep(1000); waitFor(check, attempts - 1) }
+        }
+
+      for {
+        _ <- service.upsert(Seq(vector1, vector2), tempNamespace)
+        namesBefore <- waitFor(_.contains(tempNamespace))
+        deleted <- service.deleteNamespace(tempNamespace)
+        namesAfter <- waitFor(!_.contains(tempNamespace))
+        deletedAgain <- service.deleteNamespace(tempNamespace)
+      } yield {
+        namesBefore should contain(tempNamespace)
+        deleted shouldEqual DeleteResponse.Deleted
+        namesAfter shouldNot contain(tempNamespace)
+        deletedAgain shouldEqual DeleteResponse.NotFound
       }
     }
 

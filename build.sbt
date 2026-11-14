@@ -8,7 +8,7 @@ val scala33 = "3.3.1"
 
 ThisBuild / organization := "io.cequence"
 ThisBuild / scalaVersion := scala213
-ThisBuild / version := "1.3.6"
+ThisBuild / version := "1.3.7"
 ThisBuild / isSnapshot := false
 
 lazy val core = (project in file("pinecone-core"))

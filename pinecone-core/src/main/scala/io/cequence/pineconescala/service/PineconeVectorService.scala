@@ -20,6 +20,8 @@ import scala.concurrent.Future
  *   - update
  *   - upsert
  *   - listVectorIDs
+ *   - listNamespaces (listAllNamespaces)
+ *   - deleteNamespace
  *
  * @since Apr
  *   2023
@@ -167,6 +169,54 @@ trait PineconeVectorService extends PineconeServiceConsts {
   def deleteAll(
     namespace: String
   ): Future[Unit]
+
+  /**
+   * Lists the namespaces of a serverless index (not supported for pod-based indexes).
+   *
+   * It returns up to 100 namespaces at a time by default in sorted order (bitwise/"C"
+   * collation). If the limit parameter is set, it returns up to that number of namespaces
+   * instead. Whenever there are additional namespaces to return, the response also includes a
+   * pagination token (`pagination.next`) that you can use to get the next batch.
+   *
+   * @param limit
+   * @param paginationToken
+   * @return
+   *   ListNamespacesResponse
+   * @see
+   *   <a href="https://docs.pinecone.io/reference/api/2025-04/data-plane/listnamespaces">Pinecone
+   *   Doc</a>
+   */
+  def listNamespaces(
+    limit: Option[Int] = None,
+    paginationToken: Option[String] = None
+  ): Future[ListNamespacesResponse]
+
+  /**
+   * Same as [[listNamespaces]] but returns all the namespaces (follows the pagination).
+   *
+   * @param batchLimit
+   * @return
+   */
+  def listAllNamespaces(
+    batchLimit: Option[Int] = None
+  ): Future[Seq[NamespaceDescription]]
+
+  /**
+   * Deletes a namespace from a serverless index (not supported for pod-based indexes). Unlike
+   * [[deleteAll]], which deletes only the vectors and leaves an empty namespace behind, this
+   * removes the namespace itself. The deletion is irreversible.
+   *
+   * @param namespace
+   *   The namespace to delete (`__default__` for the default namespace).
+   * @return
+   *   DeleteResponse.Deleted if deleted, DeleteResponse.NotFound if the namespace doesn't exist
+   * @see
+   *   <a href="https://docs.pinecone.io/reference/api/2025-04/data-plane/deletenamespace">Pinecone
+   *   Doc</a>
+   */
+  def deleteNamespace(
+    namespace: String
+  ): Future[DeleteResponse]
 
   /**
    * The Fetch operation looks up and returns vectors, by ID, from a single namespace. The

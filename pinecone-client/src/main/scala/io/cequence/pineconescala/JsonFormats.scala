@@ -28,6 +28,30 @@ object JsonFormats {
   implicit lazy val listVectorIdsResponseFormat: Format[ListVectorIdsResponse] =
     Json.format[ListVectorIdsResponse]
 
+  // namespace formats
+  // record_count is int64 per the spec, but some API examples return it as a string
+  private val recordCountReads: Reads[Long] = Reads {
+    case JsNumber(n) => JsSuccess(n.toLong)
+    case JsString(s) if s.nonEmpty && s.forall(_.isDigit) => JsSuccess(s.toLong)
+    case other => JsError(s"Invalid record_count: $other")
+  }
+  implicit lazy val namespaceDescriptionFormat: Format[NamespaceDescription] = Format(
+    (
+      (__ \ "name").read[String] and
+        (__ \ "record_count").readNullable(recordCountReads).map(_.getOrElse(0L))
+    )(NamespaceDescription.apply _),
+    Writes(d => Json.obj("name" -> d.name, "record_count" -> d.recordCount))
+  )
+  implicit lazy val listNamespacesPaginationFormat: Format[ListNamespacesPagination] =
+    Json.format[ListNamespacesPagination]
+  implicit lazy val listNamespacesResponseFormat: Format[ListNamespacesResponse] = Format(
+    (
+      (__ \ "namespaces").readNullable[Seq[NamespaceDescription]].map(_.getOrElse(Nil)) and
+        (__ \ "pagination").readNullable[ListNamespacesPagination]
+    )(ListNamespacesResponse.apply _),
+    Json.writes[ListNamespacesResponse]
+  )
+
   // index/collection formats
   implicit lazy val collectionInfoFormat: Format[CollectionInfo] = Json.format[CollectionInfo]
   implicit lazy val indexStatusFormat: Format[IndexStatus] = {

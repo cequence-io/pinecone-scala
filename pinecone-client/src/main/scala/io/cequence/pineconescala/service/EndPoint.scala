@@ -15,6 +15,7 @@ object EndPoint {
   case object vectors_list extends EndPoint("vectors/list")
   case object vectors_update extends EndPoint("vectors/update")
   case object vectors_upsert extends EndPoint("vectors/upsert")
+  case object namespaces extends EndPoint
   case object collections extends EndPoint
   case object databases extends EndPoint
   case object indexes extends EndPoint

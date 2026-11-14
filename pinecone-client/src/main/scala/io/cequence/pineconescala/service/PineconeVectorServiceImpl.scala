@@ -10,7 +10,7 @@ import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 import io.cequence.wsclient.JsonUtil.JsonOps
 import io.cequence.wsclient.ResponseImplicits._
-import io.cequence.wsclient.domain.{SiteBinding, WsRequestContext}
+import io.cequence.wsclient.domain.{RichResponse, SiteBinding, WsRequestContext}
 import io.cequence.wsclient.service.WSClientEngine
 import io.cequence.wsclient.service.WSClientWithEngineTypes.WSClientWithEngine
 import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
@@ -186,6 +186,48 @@ private class PineconeVectorServiceImpl(
       )
     ).map(_ => ())
 
+  override def listNamespaces(
+    limit: Option[Int],
+    paginationToken: Option[String]
+  ): Future[ListNamespacesResponse] =
+    execGET(
+      EndPoint.namespaces,
+      params = Seq(
+        Tag.limit -> limit,
+        Tag.paginationToken -> paginationToken
+      )
+    ).map(
+      _.asSafeJson[ListNamespacesResponse]
+    )
+
+  override def listAllNamespaces(
+    batchLimit: Option[Int]
+  ): Future[Seq[NamespaceDescription]] = {
+
+    // aux recursive function
+    def listNamespacesAux(
+      paginationToken: Option[String] = None
+    ): Future[Seq[NamespaceDescription]] =
+      listNamespaces(batchLimit, paginationToken).flatMap { response =>
+        response.pagination.flatMap(_.next).map { nextToken =>
+          listNamespacesAux(Some(nextToken)).map(response.namespaces ++ _)
+        }.getOrElse(
+          Future.successful(response.namespaces)
+        )
+      }
+
+    listNamespacesAux()
+  }
+
+  override def deleteNamespace(
+    namespace: String
+  ): Future[DeleteResponse] =
+    execDELETERich(
+      EndPoint.namespaces,
+      endPointParam = Some(namespace),
+      acceptableStatusCodes = Nil // don't parse response at all
+    ).map(handleDeleteNamespaceResponse)
+
   override def fetch(
     ids: Seq[String],
     namespace: String
@@ -236,6 +278,16 @@ private class PineconeVectorServiceImpl(
           )
       }
     )
+
+  private def handleDeleteNamespaceResponse(response: RichResponse): DeleteResponse =
+    response.status.code match {
+      case 200 | 202 => DeleteResponse.Deleted
+      case 404 => DeleteResponse.NotFound
+      case _ =>
+        throw new PineconeScalaClientException(
+          s"Code ${response.status.code} : ${response.status.message}"
+        )
+    }
 
   override protected def handleErrorCodes(
     httpCode: Int,
