@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response._
@@ -409,7 +409,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext
   ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] =
-    apply(ConfigFactory.load(configFileName))
+    apply(loadConfig())
 
   def apply(
     config: Config

@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.{PineconeScalaClientException, PineconeScalaClientMetadataSizeExceededException, PineconeScalaClientRequestSizeExceededException}
 import io.cequence.pineconescala.domain.response._
@@ -308,7 +308,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext
   ): Future[Option[PineconeVectorService]] =
-    apply(indexName, ConfigFactory.load(configFileName))
+    apply(indexName, loadConfig())
 
   /**
    * One engine serves both the transient index lookup (`describeIndex`) and the returned

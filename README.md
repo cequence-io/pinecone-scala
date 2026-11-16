@@ -46,11 +46,11 @@ or to *pom.xml* (if you use maven)
 
 ## HTTP Backends (Engines) 🔌
 
-The client doesn't talk HTTP itself - it goes through a pluggable [ws-client](https://github.com/cequence-io/ws-client) engine (1.2.1), and doesn't enforce any. `pinecone-scala-client-default` is just `pinecone-scala-client` plus the JDK engine. To use a different backend, depend on `pinecone-scala-client` and add the backend's module next to it, e.g.
+The client doesn't talk HTTP itself - it goes through a pluggable [ws-client](https://github.com/cequence-io/ws-client) engine (1.2.2), and doesn't enforce any. `pinecone-scala-client-default` is just `pinecone-scala-client` plus the JDK engine. To use a different backend, depend on `pinecone-scala-client` and add the backend's module next to it, e.g.
 
 ```
 "io.cequence" %% "pinecone-scala-client" % "2.0.0",
-"io.cequence" %% "ws-client-play-pekko" % "1.2.1"
+"io.cequence" %% "ws-client-play-pekko" % "1.2.2"
 ```
 
 The available backends:
@@ -106,7 +106,7 @@ engine.close()
 
 **Engine-specific behavior.** The engine applies the timeouts, so which settings take effect depends on it - e.g. the JDK engine ignores `pooledConnectionIdleTimeout`. The JDK engine also builds multipart uploads (assistant files) in memory, so for very large files prefer one of the Akka/Pekko-based engines.
 
-**Troubleshooting "No WS client engine found on the classpath".** Add a backend module (see the table above). If one is on the classpath and the error persists, your environment likely uses isolated class loaders (e.g. Play dev mode, an app server or a notebook) - the engine lookup goes through the current thread's context class loader. Then create the engine on your app's thread (`WSClientEngineRegistry(...)` as above) and pass it to the `withEngine` factories.
+**Troubleshooting "No WS client engine found on the classpath".** Add a backend module (see the table above). If one is on the classpath and the error persists, your environment likely uses isolated class loaders (e.g. Play dev mode, an app server or a notebook) - the engine lookup goes through the current thread's context class loader, or ws-client's own class loader when the context one can't see ws-client (since ws-client 1.2.2), so an engine loaded by yet another class loader isn't found. Then create the engine on your app's thread (`WSClientEngineRegistry(...)` as above) and pass it to the `withEngine` factories.
 
 ## Config ⚙️
 

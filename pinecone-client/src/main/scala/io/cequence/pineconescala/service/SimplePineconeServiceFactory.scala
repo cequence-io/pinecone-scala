@@ -1,6 +1,6 @@
 package io.cequence.pineconescala.service
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import io.cequence.wsclient.service.ws.Timeouts
 
 import scala.concurrent.ExecutionContext
@@ -11,7 +11,7 @@ trait SimplePineconeServiceFactory[T] extends PineconeServiceFactoryHelper {
   )(
     implicit ec: ExecutionContext
   ): T =
-    apply(ConfigFactory.load(configFileName))
+    apply(loadConfig())
 
   def apply(
     config: Config

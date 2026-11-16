@@ -194,12 +194,19 @@ class ServerlessPineconeVectorServiceImplSpec
           else { Thread.sleep(1000); waitFor(check, attempts - 1) }
         }
 
+      // a repeated delete can still be accepted (202) shortly after the namespace left the list
+      def deleteUntilNotFound(attempts: Int = 30): Future[DeleteResponse] =
+        service.deleteNamespace(tempNamespace).flatMap { response =>
+          if (response == DeleteResponse.NotFound || attempts <= 1) Future.successful(response)
+          else { Thread.sleep(1000); deleteUntilNotFound(attempts - 1) }
+        }
+
       for {
         _ <- service.upsert(Seq(vector1, vector2), tempNamespace)
         namesBefore <- waitFor(_.contains(tempNamespace))
         deleted <- service.deleteNamespace(tempNamespace)
         namesAfter <- waitFor(!_.contains(tempNamespace))
-        deletedAgain <- service.deleteNamespace(tempNamespace)
+        deletedAgain <- deleteUntilNotFound()
       } yield {
         namesBefore should contain(tempNamespace)
         deleted shouldEqual DeleteResponse.Deleted
