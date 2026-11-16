@@ -1,5 +1,5 @@
 # Pinecone Scala Client 🗂️
-[![version](https://img.shields.io/badge/version-2.0.0--SNAPSHOT-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
+[![version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
 
 This is an intuitive async full-fledged Scala client for Pinecone API supporting all the available index, vector, collection, inference and assistant operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
@@ -29,7 +29,7 @@ The library comes in three modules:
 To pull the library with the default backend add the following dependency to your *build.sbt*
 
 ```
-"io.cequence" %% "pinecone-scala-client-default" % "2.0.0-SNAPSHOT"
+"io.cequence" %% "pinecone-scala-client-default" % "2.0.0"
 ```
 
 or to *pom.xml* (if you use maven)
@@ -38,7 +38,7 @@ or to *pom.xml* (if you use maven)
 <dependency>
     <groupId>io.cequence</groupId>
     <artifactId>pinecone-scala-client-default_2.12</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -49,7 +49,7 @@ or to *pom.xml* (if you use maven)
 The client doesn't talk HTTP itself - it goes through a pluggable [ws-client](https://github.com/cequence-io/ws-client) engine (1.2.1), and doesn't enforce any. `pinecone-scala-client-default` is just `pinecone-scala-client` plus the JDK engine. To use a different backend, depend on `pinecone-scala-client` and add the backend's module next to it, e.g.
 
 ```
-"io.cequence" %% "pinecone-scala-client" % "2.0.0-SNAPSHOT",
+"io.cequence" %% "pinecone-scala-client" % "2.0.0",
 "io.cequence" %% "ws-client-play-pekko" % "1.2.1"
 ```
 

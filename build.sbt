@@ -9,7 +9,7 @@ val scala33 = "3.3.1"
 ThisBuild / organization := "io.cequence"
 ThisBuild / scalaVersion := scala213
 // isSnapshot follows the version (a -SNAPSHOT suffix)
-ThisBuild / version := "2.0.0-SNAPSHOT"
+ThisBuild / version := "2.0.0"
 
 // the published modules cross-build (`sbt ++2.12.18 client/test`, `+clientDefault/publishSigned`)
 val crossBuilt = Seq(crossScalaVersions := Seq(scala212, scala213, scala32))
