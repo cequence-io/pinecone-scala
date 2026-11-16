@@ -1,14 +1,11 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.Assistant.Status.Terminating
 import io.cequence.pineconescala.domain.response.DeleteResponse
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen, OptionValues}
 import org.scalatest.concurrent.Eventually.PatienceConfig
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatest.wordspec.AsyncWordSpec
 
@@ -25,7 +22,6 @@ class PineconeAssistantServiceImplSpec
     with OptionValues {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 

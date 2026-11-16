@@ -1,12 +1,12 @@
 package io.cequence.pineconeopenai.demo
 
-import akka.stream.scaladsl.{Flow, Sink, Source}
 import io.cequence.openaiscala.domain.ModelId
 import io.cequence.openaiscala.domain.settings.CreateEmbeddingsSettings
 import io.cequence.pineconescala.domain.PVector
 import io.cequence.pineconescala.domain.response.CreateResponse
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.service.{PineconePodBasedIndexService, PineconeServerlessIndexService, PineconeVectorService}
+import io.cequence.wsclient.stream.AsyncStream
 
 import scala.concurrent.Future
 import play.api.libs.json.Json
@@ -29,8 +29,7 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
 
   private val indexName = "openai"
   private val namespace = "default"
-  private val batchSize = 32                                      // process everything in batches of 32
-  private val parallelism = 1                                     // no rush, do it in sequence
+  private val batchSize = 32                                      // process everything in batches of 32 (one at a time)
 
   private val podBasedIndexSettings = DefaultSettings.CreatePodBasedIndex // metric = cosine, pods = 1, podType = p1.x1
   private val serverlessIndexSettings = DefaultSettings.CreateServerlessIndex // metric = cosine, AWS, EU West1
@@ -90,19 +89,26 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
       // create a service for a given index name
       pineconeVectorService <- createPineconeVectorService(indexName)
 
-      // take the first 1000 entries and extract the text. the result is an iterator
-      trecTextsIterator = scala.io.Source.fromFile("src/main/resources/trec-train.json")
-        .getLines()
-        .take(1000)
-        .map(jsonString => (Json.parse(jsonString) \ "text").as[String].trim) // extract text
+      // take the first 1000 entries, extract the text, add ids to each text/line and chunk
+      // into batches of 32 - a stream that opens the file when it runs, reads it on a blocking
+      // pool, and closes it at the end, on failure, or on cancel
+      textsWithIdsStream = AsyncStream.defer {
+        val source = scala.io.Source.fromFile("src/main/resources/trec-train.json")
 
-      // add ids to each text/line, chunk into batches of 32, and create a source
-      textsWithIdsSource = Source.fromIterator(() => trecTextsIterator.zipWithIndex)
-        .grouped(batchSize)
-//        .buffer(2, OverflowStrategy.backpressure) // process in a sequence (no rush)
+        AsyncStream.fromBlockingIterator(
+          open = () =>
+            source
+              .getLines()
+              .take(1000)
+              .map(jsonString => (Json.parse(jsonString) \ "text").as[String].trim) // extract text
+              .zipWithIndex
+              .grouped(batchSize),
+          close = () => source.close()
+        )
+      }
 
-      // define an Akka-based processing flow
-      processingFlow = Flow[Seq[(String, Int)]].mapAsyncUnordered(parallelism) { textsWithIds =>
+      // processing: one batch at a time (evalMap runs the next once the previous is done)
+      processingStream = textsWithIdsStream.evalMap { textsWithIds =>
         val texts = textsWithIds.map(_._1)
 
         println(s"Creating and upserting embeddings for batch: ${textsWithIds.head._2 / batchSize}")
@@ -134,8 +140,8 @@ object PineconeOpenAIDemo extends PineconeOpenAIDemoApp {
           ()
       }
 
-      // execute the source with the processing flow
-      _ <- textsWithIdsSource.via(processingFlow).runWith(Sink.ignore)
+      // run the stream
+      _ <- processingStream.runDrain
 
       //////////////
       // Querying //

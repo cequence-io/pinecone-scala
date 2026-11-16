@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.wsclient.service.ws.Timeouts
 
@@ -10,16 +9,14 @@ trait SimplePineconeServiceFactory[T] extends PineconeServiceFactoryHelper {
 
   def apply(
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): T =
     apply(ConfigFactory.load(configFileName))
 
   def apply(
     config: Config
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): T = {
     val timeouts = loadTimeouts(config)
 
@@ -33,7 +30,6 @@ trait SimplePineconeServiceFactory[T] extends PineconeServiceFactoryHelper {
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): T
 }

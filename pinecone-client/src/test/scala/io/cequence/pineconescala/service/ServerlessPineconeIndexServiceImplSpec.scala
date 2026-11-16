@@ -1,14 +1,11 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.Metric
 import io.cequence.pineconescala.domain.settings.{CloudProvider, Region}
 import io.cequence.pineconescala.domain.settings.IndexSettings.CreateServerlessIndexSettings
 import org.scalatest.GivenWhenThen
-import org.scalatest.matchers.must.Matchers.contain
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.concurrent.ExecutionContext
@@ -16,10 +13,10 @@ import scala.concurrent.ExecutionContext
 class ServerlessPineconeIndexServiceImplSpec
     extends AsyncWordSpec
     with GivenWhenThen
+    with Matchers
     with ServerlessFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 

@@ -3,8 +3,7 @@ package io.cequence.pineconescala.service
 import io.cequence.pineconescala.domain.response.Choice.{ChatCompletionMessage, FinishReason}
 import io.cequence.pineconescala.domain.response.{ChatCompletionResponse, Choice}
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import play.api.libs.json.Json
 
 class ChatCompletionCodecSpec extends AnyFlatSpec with Matchers {

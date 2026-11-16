@@ -1,6 +1,6 @@
 object Dependencies {
 
   object Versions {
-    val wsClient = "1.1.5"
+    val wsClient = "1.2.1"
   }
 }

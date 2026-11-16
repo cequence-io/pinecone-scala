@@ -2,26 +2,37 @@ import sbt.Keys.test
 
 // Supported versions
 val scala212 = "2.12.18"
-val scala213 = "2.13.11"
+val scala213 = "2.13.18"
 val scala32 = "3.2.2"
 val scala33 = "3.3.1"
 
 ThisBuild / organization := "io.cequence"
 ThisBuild / scalaVersion := scala213
-ThisBuild / version := "1.3.7"
-ThisBuild / isSnapshot := false
+// isSnapshot follows the version (a -SNAPSHOT suffix)
+ThisBuild / version := "2.0.0-SNAPSHOT"
 
-lazy val core = (project in file("pinecone-core"))
+// the published modules cross-build (`sbt ++2.12.18 client/test`, `+clientDefault/publishSigned`)
+val crossBuilt = Seq(crossScalaVersions := Seq(scala212, scala213, scala32))
 
-lazy val client = (project in file("pinecone-client")).dependsOn(core).aggregate(core)
+lazy val core = (project in file("pinecone-core")).settings(crossBuilt)
+
+// no HTTP engine enforced - the user adds a ws-client backend
+lazy val client =
+  (project in file("pinecone-client")).settings(crossBuilt).dependsOn(core).aggregate(core)
+
+// client + the default HTTP engine (JDK)
+lazy val clientDefault = (project in file("pinecone-client-default"))
+  .settings(crossBuilt)
+  .dependsOn(client)
+  .aggregate(client)
 
 lazy val examples = (project in file("examples"))
-  .dependsOn(core, client)
-  .aggregate(core, client)
+  .dependsOn(clientDefault)
+  .aggregate(clientDefault)
 
 lazy val openAiExamples = (project in file("openai-examples"))
-  .dependsOn(core, client)
-  .aggregate(core, client)
+  .dependsOn(clientDefault)
+  .aggregate(clientDefault)
 
 // POM settings for Sonatype
 ThisBuild / homepage := Some(url("https://github.com/cequence-io/pinecone-scala"))

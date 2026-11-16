@@ -1,19 +1,15 @@
 package io.cequence.pineconeopenai.demo
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import io.cequence.openaiscala.service.OpenAIServiceFactory
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconeServiceConsts, PineconeVectorServiceFactory}
 
 trait PineconeOpenAIDemoApp extends App with PineconeServiceConsts {
 
   protected implicit val ec: ExecutionContext = ExecutionContext.global
-
-  private val actorSystem: ActorSystem = ActorSystem()
-  protected implicit val materializer: Materializer = Materializer(actorSystem)
 
   // impl hook
   protected def exec: Future[_]
@@ -29,11 +25,9 @@ trait PineconeOpenAIDemoApp extends App with PineconeServiceConsts {
 
   protected lazy val openAIService = OpenAIServiceFactory()
 
-  {
+  private val run = {
     for {
       _ <- exec
-
-      _ <- actorSystem.terminate()
     } yield
       System.exit(0)
   } recover {
@@ -41,4 +35,8 @@ trait PineconeOpenAIDemoApp extends App with PineconeServiceConsts {
       e.printStackTrace()
       System.exit(1)
   }
+
+  // nothing non-daemon (no actor system) keeps the JVM alive until the demo finishes - a
+  // waiting thread does (not a blocking wait here: a trait body runs in the object's constructor)
+  new Thread(() => Await.ready(run, Duration.Inf)).start()
 }

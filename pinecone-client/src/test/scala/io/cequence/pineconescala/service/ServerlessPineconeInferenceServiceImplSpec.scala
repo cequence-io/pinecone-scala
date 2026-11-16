@@ -1,14 +1,11 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.RerankModelId
 import io.cequence.pineconescala.domain.settings.RerankSettings
 import org.scalatest.GivenWhenThen
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.concurrent.ExecutionContext
@@ -21,7 +18,6 @@ class ServerlessPineconeInferenceServiceImplSpec
     with PineconeServiceConsts {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 

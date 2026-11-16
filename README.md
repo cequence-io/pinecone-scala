@@ -1,5 +1,5 @@
 # Pinecone Scala Client 🗂️
-[![version](https://img.shields.io/badge/version-1.3.7-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
+[![version](https://img.shields.io/badge/version-2.0.0--SNAPSHOT-green.svg)](https://cequence.io) [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT) ![GitHub Stars](https://img.shields.io/github/stars/cequence-io/pinecone-scala?style=social) [![Twitter Follow](https://img.shields.io/twitter/follow/0xbnd?style=social)](https://twitter.com/0xbnd)
 
 This is an intuitive async full-fledged Scala client for Pinecone API supporting all the available index, vector, collection, inference and assistant operations/endpoints, provided in two convenient services called [PineconeVectorService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeVectorService.scala) and [PineconeIndexService](./pinecone-core/src/main/scala/io/cequence/pineconescala/service/PineconeIndexService.scala). The supported calls are: 
 
@@ -11,20 +11,25 @@ This is an intuitive async full-fledged Scala client for Pinecone API supporting
   - these operations are provided by two services: `PineconeAssistantService` and `PineconeAssistantFileService`
 
 Note that in order to be consistent with the Pinecone API naming, the service function names match exactly the API endpoint titles/descriptions with camelcase.
-Also, we aimed the lib to be self-contained with the fewest dependencies possible therefore we ended up using only two libs `play-ahc-ws-standalone` and `play-ws-standalone-json` (at the top level).  
+Also, we aimed the lib to be self-contained with the fewest dependencies possible: the client depends only on `ws-client-core` (from [ws-client](https://github.com/cequence-io/ws-client), with `play-json` for JSON), and the HTTP backend is pluggable - see [HTTP Backends](#http-backends-engines-).  
 
 **✔️ Important**: this is a "community-maintained" library and, as such, has no relation to Pinecone company.
 
-👉 Check out an article about the lib/client on [Medium](https://medium.com/@0xbnd/pinecone-scala-client-just-landed-53b3638e61b3). Also, **if you want to see hands-on examples right away, go to the [Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/examples) or [OpenAI + Pinecone Examples](https://github.com/cequence-io/pinecone-scala/tree/master/openai-examples) modules.**
+👉 Check out an article about the lib/client on [Medium](https://medium.com/@0xbnd/pinecone-scala-client-just-landed-53b3638e61b3). Also, **if you want to see hands-on examples right away, go to the [Pinecone Examples](./examples) or [OpenAI + Pinecone Examples](./openai-examples) modules.**
 
 ## Installation 🚀
 
-The currently supported Scala versions are **2.12, 2.13**, and **3**.  
+The currently supported Scala versions are **2.12, 2.13**, and **3**.
 
-To pull the library you have to add the following dependency to your *build.sbt*
+The library comes in three modules:
+- `pinecone-scala-core` - the domain and the service traits
+- `pinecone-scala-client` - the services, with no HTTP backend (you add one - see [HTTP Backends](#http-backends-engines-))
+- `pinecone-scala-client-default` - the client plus the default HTTP backend (JDK `java.net.http`, no extra dependencies)
+
+To pull the library with the default backend add the following dependency to your *build.sbt*
 
 ```
-"io.cequence" %% "pinecone-scala-client" % "1.3.7"
+"io.cequence" %% "pinecone-scala-client-default" % "2.0.0-SNAPSHOT"
 ```
 
 or to *pom.xml* (if you use maven)
@@ -32,10 +37,76 @@ or to *pom.xml* (if you use maven)
 ```
 <dependency>
     <groupId>io.cequence</groupId>
-    <artifactId>pinecone-scala-client_2.12</artifactId>
-    <version>1.3.7</version>
+    <artifactId>pinecone-scala-client-default_2.12</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
+
+**Upgrading from 1.x**: switch to `pinecone-scala-client-default` (or to `pinecone-scala-client` + `ws-client-play-akka` to stay on Play WS + Akka - see [HTTP Backends](#http-backends-engines-)), drop the implicit `Materializer` (the factories take only an implicit `ExecutionContext`), and on Scala 2.13 use 2.13.18+. The 1.x (Akka-based) releases stay available on Maven Central.
+
+## HTTP Backends (Engines) 🔌
+
+The client doesn't talk HTTP itself - it goes through a pluggable [ws-client](https://github.com/cequence-io/ws-client) engine (1.2.1), and doesn't enforce any. `pinecone-scala-client-default` is just `pinecone-scala-client` plus the JDK engine. To use a different backend, depend on `pinecone-scala-client` and add the backend's module next to it, e.g.
+
+```
+"io.cequence" %% "pinecone-scala-client" % "2.0.0-SNAPSHOT",
+"io.cequence" %% "ws-client-play-pekko" % "1.2.1"
+```
+
+The available backends:
+
+| Module | Engine id | Priority | Scala | Backend |
+|---|---|---|---|---|
+| `ws-client-jdk` | `jdk` | 0 | 2.12, 2.13, 3 | JDK `java.net.http`, no extra dependencies (the one in `pinecone-scala-client-default`) |
+| `ws-client-sttp` | `sttp` | 5 | 2.12, 2.13 | sttp |
+| `ws-client-zio-http` | `zio-http` | 7 | 2.12, 2.13 | ZIO HTTP |
+| `ws-client-play-akka` | `play-akka` | 10 | 2.12, 2.13, 3 | Play WS on Akka (the 1.x backend) |
+| `ws-client-pekko-http` | `pekko-http` | 15 | 2.13, 3 (3.3+) | Pekko HTTP |
+| `ws-client-play-pekko` | `play-pekko` | 20 | 2.13, 3 (3.3+) | Play WS on Pekko |
+
+`ws-client-play-akka-stream` and `ws-client-play-pekko-stream` are the streaming variants of the Play engines (priorities 11 and 21).
+
+**Which engine is used.** The engine is looked up on the classpath when a service is created:
+1. an engine id set via the config key `ws-client.engine` (in `application.conf`, or as `-Dws-client.engine=<id>`) wins - note that it applies to every ws-client-based library in the app;
+2. otherwise a single engine on the classpath is used as is, and with several, the one with the highest priority;
+3. two engines sharing the top priority fail with an error asking you to pick one by id, and with no engine at all creating a service fails with "No WS client engine found on the classpath".
+
+The JDK engine has the lowest priority - it's the fallback. So with `pinecone-scala-client-default`, if another engine also ends up on the classpath (e.g. `ws-client-play-pekko` pulled in by another library), that one is used instead. To keep the JDK engine, set `ws-client.engine = jdk`, or pass the engine explicitly (below).
+
+**Passing an engine explicitly (and sharing it).** Every service created by a plain factory gets its own engine (with its own connection pool), released by the service's `close()`. To share one engine across services, or to pick it in code, create the engine yourself and pass it to the `withEngine` factories. The engine is then yours: `close()` on the services leaves it open, and you close it once, when done with all of them.
+
+```scala
+import com.typesafe.config.ConfigFactory
+import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
+import io.cequence.wsclient.service.spi.{TransportSettings, WSClientEngineRegistry}
+import io.cequence.wsclient.service.ws.Timeouts
+
+// a specific engine by id - omit engineId to use the classpath lookup described above
+val engine = WSClientEngineRegistry(
+  TransportSettings(timeouts = Timeouts(requestTimeout = Some(120000))), // ms
+  engineId = Some("jdk")
+)
+
+val apiKey = sys.env("PINECONE_SCALA_CLIENT_API_KEY")
+
+val indexService = PineconeIndexServiceFactory.withEngine(engine, apiKey, environment = None).asOne
+val inferenceService = PineconeInferenceServiceFactory.withEngine(engine, apiKey)
+val assistantService = PineconeAssistantServiceFactory.withEngine(engine, apiKey)
+
+// looks the index up (on the same engine) - Future[Option[PineconeVectorService]]
+val vectorService = PineconeVectorServiceFactory.withEngine(
+  engine,
+  "index-name",
+  ConfigFactory.load("pinecone-scala-client.conf")
+)
+
+// ... when done with all the services
+engine.close()
+```
+
+**Engine-specific behavior.** The engine applies the timeouts, so which settings take effect depends on it - e.g. the JDK engine ignores `pooledConnectionIdleTimeout`. The JDK engine also builds multipart uploads (assistant files) in memory, so for very large files prefer one of the Akka/Pekko-based engines.
+
+**Troubleshooting "No WS client engine found on the classpath".** Add a backend module (see the table above). If one is on the classpath and the error persists, your environment likely uses isolated class loaders (e.g. Play dev mode, an app server or a notebook) - the engine lookup goes through the current thread's context class loader. Then create the engine on your app's thread (`WSClientEngineRegistry(...)` as above) and pass it to the `withEngine` factories.
 
 ## Config ⚙️
 
@@ -46,11 +117,10 @@ or to *pom.xml* (if you use maven)
 
 **Ia. Obtaining `PineconeIndexService`**
 
-First you need to provide an implicit execution context as well as akka materializer, e.g., as
+First you need to provide an implicit execution context, e.g., as
 
 ```scala
   implicit val ec = ExecutionContext.global
-  implicit val materializer = Materializer(ActorSystem())
 ```
 
 Then you can obtain a service (pod or serverless-based) in one of the following ways.
@@ -86,7 +156,7 @@ Then you can obtain a service (pod or serverless-based) in one of the following 
 
 **Ib. Obtaining `PineconeVectorService`**
 
-Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
+Same as with `PineconeIndexService`, you need to first provide an implicit execution context. Then you can obtain a service in one of the following ways.
 
 - Default config (expects env. variable(s) to be set as defined in `Config` section). Note that if the index with a given name is not available, the factory will return `None`.
 ```scala
@@ -100,7 +170,7 @@ Same as with `PineconeIndexService`, you need to first provide implicit executio
 
 **Ic. Obtaining `PineconeInferenceService`**
 
-Same as with `PineconeIndexService`, you need to first provide implicit execution context and Akka materializer. Then you can obtain a service in one of the following ways.
+Same as with `PineconeIndexService`, you need to first provide an implicit execution context. Then you can obtain a service in one of the following ways.
 
 - Default config
 
@@ -541,8 +611,8 @@ Examples:
 ## Demo
 
 For ready-to-run demos pls. refer to separate modules:
-- [Pinecone Scala Demo](https://github.com/cequence-io/pinecone-scala/tree/master/examples) - shows how to use Pinecone vector, index, and collection operations  
-- [Pinecone + OpenAI Scala Demo](https://github.com/cequence-io/pinecone-scala/tree/master/openai-examples) - shows how to generate and store OpenAI embeddings into Pinecone and query them afterwards
+- [Pinecone Scala Demo](./examples) - shows how to use Pinecone vector, index, and collection operations  
+- [Pinecone + OpenAI Scala Demo](./openai-examples) - shows how to generate and store OpenAI embeddings into Pinecone and query them afterwards
 
 ## FAQ 🤔
 
@@ -561,7 +631,9 @@ pinecone-scala-client {
 }
 ```
 
-2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/1.3.7/pinecone-scala-client_2.13-1.3.7.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
+   Which settings take effect depends on the HTTP backend - e.g. the JDK engine (`ws-client-jdk`, the one in `pinecone-scala-client-default`) ignores `pooledConnectionIdleTimeoutSec` - see [HTTP Backends](#http-backends-engines-).
+
+2. _I got an exception like `com.typesafe.config.ConfigException$UnresolvedSubstitution: pinecone-scala-client.conf @ jar:file:.../io/cequence/pinecone-scala-client_2.13/2.0.0/pinecone-scala-client_2.13-2.0.0.jar!/pinecone-scala-client.conf: 4: Could not resolve substitution to a value: ${PINECONE_SCALA_CLIENT_API_KEY}`. What should I do?_
 
    Set the env. variable `PINECONE_SCALA_CLIENT_API_KEY`. If you don't have one register [here](https://app.pinecone.io/?sessionType=signup).
 

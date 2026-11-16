@@ -1,22 +1,20 @@
 package io.cequence.pineconescala.demo
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.PodType
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 // run me - env. variables PINECONE_SCALA_CLIENT_API_KEY and PINECONE_SCALA_CLIENT_ENV must be set
 object PineconeIndexLongDemo extends App {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   private val indexName = "auto-gpt-test"
   private val collectionName = s"${indexName}-collection"
 
-  {
+  private val run = {
     for {
       // we wrap it in a Future just because of the recover block
       pineconePodBasedIndexService <- Future(
@@ -142,4 +140,7 @@ object PineconeIndexLongDemo extends App {
     println(e)
     System.exit(1)
   }
+
+  // nothing non-daemon (no actor system) keeps the JVM alive - wait for the demo to finish
+  Await.ready(run, Duration.Inf)
 }

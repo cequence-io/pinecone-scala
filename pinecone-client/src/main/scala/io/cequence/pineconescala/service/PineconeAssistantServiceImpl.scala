@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.response.{
   Assistant,
   DeleteResponse,
@@ -22,8 +21,7 @@ class PineconeAssistantServiceImpl(
   explicitTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  implicit val ec: ExecutionContext,
-  val materializer: Materializer
+  implicit val ec: ExecutionContext
 ) extends PineconeAssistantService
     with WSClientWithEngine {
 
@@ -105,8 +103,7 @@ object PineconeAssistantServiceFactory
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeAssistantService = {
     new PineconeAssistantServiceImpl(apiKey, timeouts)
   }
@@ -115,8 +112,7 @@ object PineconeAssistantServiceFactory
     engine: WSClientEngine,
     apiKey: String
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeAssistantService =
     new PineconeAssistantServiceImpl(apiKey, externalEngine = Some(engine))
 }

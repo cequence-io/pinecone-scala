@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.{PineconeScalaClientException, PineconeScalaClientMetadataSizeExceededException, PineconeScalaClientRequestSizeExceededException}
@@ -18,36 +17,31 @@ import io.cequence.wsclient.service.ws.Timeouts
 import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 /**
  * Private impl. class of [[PineconeVectorService]].
  *
  * @param apiKey
  * @param coreUrl
- * @param explTimeouts
+ * @param engine
+ * @param ownsEngine
+ *   whether `close()` closes the engine (false for a shared, caller-supplied one)
  * @since Apr
  *   2023
  */
 private class PineconeVectorServiceImpl(
   apiKey: String,
   coreUrl: String,
-  explicitTimeouts: Option[Timeouts] = None,
-  externalEngine: Option[WSClientEngine] = None
+  override protected val engine: WSClientEngine,
+  override protected val ownsEngine: Boolean
 )(
-  implicit val ec: ExecutionContext,
-  val materializer: Materializer
+  implicit val ec: ExecutionContext
 ) extends PineconeVectorService
     with WSClientWithEngine {
 
   override protected type PEP = EndPoint
   override protected type PT = Tag
-
-  // classpath-discovered engine
-  override protected val engine: WSClientEngine = externalEngine.getOrElse(
-    WSClientEngineRegistry(TransportSettings(timeouts = explicitTimeouts.getOrElse(Timeouts())))
-  )
-
-  override protected def ownsEngine: Boolean = externalEngine.isEmpty
 
   override protected val site: SiteBinding = SiteBinding(
     coreUrl,
@@ -312,40 +306,42 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
   def apply(
     indexName: String
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Future[Option[PineconeVectorService]] =
     apply(indexName, ConfigFactory.load(configFileName))
 
+  /**
+   * One engine serves both the transient index lookup (`describeIndex`) and the returned
+   * vector service, which owns it - `close()` on the service releases it. If the index is not
+   * found (or the lookup fails) the engine is closed.
+   */
   def apply(
     indexName: String,
     config: Config
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Future[Option[PineconeVectorService]] = {
-    val timeouts = loadTimeouts(config)
+    val apiKey = config.getString(s"$configPrefix.apiKey")
+    val engine = newEngine(loadTimeouts(config).toOption)
+    val indexService =
+      PineconeIndexServiceFactory.withEngine(engine, apiKey, loadPodEnv(config)).asOne
 
-    apply(
-      apiKey = config.getString(s"$configPrefix.apiKey"),
-      indexName = indexName,
-      timeouts = timeouts.toOption,
-      pineconeIndexService = PineconeIndexServiceFactory(config).asOne
-    )
+    createOnIndex(indexService, indexName, apiKey, engine)
   }
 
+  /**
+   * Looks the index up with the given index service. The returned vector service gets its own
+   * engine (`close()` releases it).
+   */
   def apply(
     apiKey: String,
     indexName: String,
     timeouts: Option[Timeouts] = None,
     pineconeIndexService: PineconeIndexService[_]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Future[Option[PineconeVectorService]] =
-    pineconeIndexService
-      .describeIndex(indexName)
-      .map(_.map(indexInfo => apply(apiKey, s"https://${indexInfo.host}", timeouts)))
+    createOnIndex(pineconeIndexService, indexName, apiKey, newEngine(timeouts))
 
   /**
    * Like `apply(indexName, config)` but runs on the given (shared, externally-owned) engine:
@@ -359,8 +355,7 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     indexName: String,
     config: Config
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Future[Option[PineconeVectorService]] = {
     val apiKey = config.getString(s"$configPrefix.apiKey")
     val indexService =
@@ -376,28 +371,59 @@ object PineconeVectorServiceFactory extends PineconeServiceFactoryHelper {
     indexHostURL: String,
     timeouts: Option[Timeouts]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
-  ): PineconeVectorService = {
-    val indexHostURLWithEndingSlash =
-      if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
-    new PineconeVectorServiceImpl(apiKey, indexHostURLWithEndingSlash, timeouts)
-  }
+    implicit ec: ExecutionContext
+  ): PineconeVectorService =
+    create(apiKey, indexHostURL, newEngine(timeouts), ownsEngine = true)
 
   def withEngine(
     engine: WSClientEngine,
     apiKey: String,
     indexHostURL: String
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
+  ): PineconeVectorService =
+    create(apiKey, indexHostURL, engine, ownsEngine = false)
+
+  // the engine must be created by the caller, on its own thread - not in the lookup's callback:
+  // engine discovery goes through the thread's context class loader, which a pool thread
+  // running the callback may not share. The created service takes the engine over.
+  private def createOnIndex(
+    indexService: PineconeIndexService[_],
+    indexName: String,
+    apiKey: String,
+    engine: WSClientEngine
+  )(
+    implicit ec: ExecutionContext
+  ): Future[Option[PineconeVectorService]] = {
+    val service = indexService
+      .describeIndex(indexName)
+      .map(_.map { indexInfo =>
+        create(apiKey, s"https://${indexInfo.host}", engine, ownsEngine = true)
+      })
+
+    // no service took the engine over (index not found or the lookup failed) - release it
+    service.onComplete {
+      case Success(Some(_)) => ()
+      case _ => engine.close()
+    }
+
+    service
+  }
+
+  // classpath-discovered engine
+  private def newEngine(timeouts: Option[Timeouts]): WSClientEngine =
+    WSClientEngineRegistry(TransportSettings(timeouts = timeouts.getOrElse(Timeouts())))
+
+  private def create(
+    apiKey: String,
+    indexHostURL: String,
+    engine: WSClientEngine,
+    ownsEngine: Boolean
+  )(
+    implicit ec: ExecutionContext
   ): PineconeVectorService = {
     val indexHostURLWithEndingSlash =
       if (indexHostURL.endsWith("/")) indexHostURL else s"$indexHostURL/"
-    new PineconeVectorServiceImpl(
-      apiKey,
-      indexHostURLWithEndingSlash,
-      externalEngine = Some(engine)
-    )
+    new PineconeVectorServiceImpl(apiKey, indexHostURLWithEndingSlash, engine, ownsEngine)
   }
 }

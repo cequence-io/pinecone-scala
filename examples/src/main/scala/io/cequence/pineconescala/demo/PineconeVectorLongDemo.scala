@@ -1,20 +1,18 @@
 package io.cequence.pineconescala.demo
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.settings.QuerySettings
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.service.PineconeIndexServiceFactory.FactoryImplicits
 import io.cequence.pineconescala.service.{PineconeIndexServiceFactory, PineconeVectorServiceFactory}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
 import scala.util.Random
 
 // run me - env. variables PINECONE_SCALA_CLIENT_API_KEY and PINECONE_SCALA_CLIENT_ENV must be set
 object PineconeVectorLongDemo extends App {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   private val indexName = "auto-gpt"
   private val testIds = Seq("666", "667")
@@ -22,7 +20,7 @@ object PineconeVectorLongDemo extends App {
 
   val pineconeIndexService = PineconeIndexServiceFactory().asOne
 
-  {
+  private val run = {
     for {
       indexes <- pineconeIndexService.listIndexes
 
@@ -170,4 +168,7 @@ object PineconeVectorLongDemo extends App {
     println(e)
     System.exit(1)
   }
+
+  // nothing non-daemon (no actor system) keeps the JVM alive - wait for the demo to finish
+  Await.ready(run, Duration.Inf)
 }

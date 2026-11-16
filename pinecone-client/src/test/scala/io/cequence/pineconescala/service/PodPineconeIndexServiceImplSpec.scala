@@ -1,7 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.{Metric, PodType}
 import io.cequence.pineconescala.domain.response.CollectionInfo
 import io.cequence.pineconescala.domain.settings.IndexSettings.{
@@ -10,8 +8,7 @@ import io.cequence.pineconescala.domain.settings.IndexSettings.{
 }
 import io.cequence.pineconescala.domain.settings.{CloudProvider, Region}
 import org.scalatest.GivenWhenThen
-import org.scalatest.matchers.must.Matchers.contain
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.concurrent.ExecutionContext
@@ -19,10 +16,10 @@ import scala.concurrent.ExecutionContext
 class PodPineconeIndexServiceImplSpec
     extends AsyncWordSpec
     with GivenWhenThen
+    with Matchers
     with PodFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   def pineconeIndexService: PineconePodBasedIndexService =
     PineconeIndexServiceFactory().left.get

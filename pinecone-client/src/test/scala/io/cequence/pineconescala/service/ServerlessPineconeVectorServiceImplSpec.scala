@@ -1,12 +1,9 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.domain.response.{DeleteResponse, FetchResponse, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
-import org.scalatest.matchers.must.Matchers.contain
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatest.{Assertion, GivenWhenThen}
 
@@ -16,10 +13,10 @@ import scala.util.Random
 class ServerlessPineconeVectorServiceImplSpec
     extends AsyncWordSpec
     with GivenWhenThen
+    with Matchers
     with ServerlessFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   val serverlessConfig: Config = ConfigFactory.load("serverless.conf")
 

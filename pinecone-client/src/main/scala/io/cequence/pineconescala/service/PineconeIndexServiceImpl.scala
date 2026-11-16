@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import com.typesafe.config.{Config, ConfigFactory}
 import io.cequence.pineconescala.JsonFormats._
 import io.cequence.pineconescala.PineconeScalaClientException
@@ -27,15 +26,14 @@ private final class ServerlessIndexServiceImpl(
   explTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  override implicit val ec: ExecutionContext,
-  override val materializer: Materializer
+  override implicit val ec: ExecutionContext
 ) extends PineconeIndexServiceImpl[CreateServerlessIndexSettings](
       apiKey,
       None,
       coreUrl = "https://api.pinecone.io/",
       explTimeouts,
       externalEngine
-    )(ec, materializer)
+    )(ec)
     with PineconeServerlessIndexService {
 
   override protected def indexesEndpoint: EndPoint = EndPoint.indexes
@@ -108,15 +106,14 @@ private final class PineconePodPineconeBasedImpl(
   explTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  override implicit val ec: ExecutionContext,
-  override val materializer: Materializer
+  override implicit val ec: ExecutionContext
 ) extends PineconeIndexServiceImpl[CreatePodBasedIndexSettings](
       apiKey,
       Some(environment),
       coreUrl = s"https://controller.${environment}.pinecone.io/",
       explTimeouts,
       externalEngine
-    )(ec, materializer)
+    )(ec)
     with PineconePodBasedIndexService {
 
   override protected def indexesEndpoint: EndPoint = EndPoint.databases
@@ -249,8 +246,7 @@ abstract class PineconeIndexServiceImpl[S <: IndexSettings](
   explicitTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  implicit val ec: ExecutionContext,
-  val materializer: Materializer
+  implicit val ec: ExecutionContext
 ) extends PineconeIndexService[S]
     with WSClientWithEngine {
 
@@ -397,8 +393,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
     environment: String,
     timeouts: Option[Timeouts]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconePodBasedIndexService =
     new PineconePodPineconeBasedImpl(apiKey, environment, timeouts)
 
@@ -406,23 +401,20 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
     apiKey: String,
     timeouts: Option[Timeouts]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeServerlessIndexService =
     new ServerlessIndexServiceImpl(apiKey, timeouts)
 
   def apply(
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] =
     apply(ConfigFactory.load(configFileName))
 
   def apply(
     config: Config
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] = {
     val timeouts = loadTimeouts(config)
 
@@ -438,8 +430,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
     environment: Option[String],
     timeouts: Option[Timeouts]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] =
     environment match {
       case Some(podEnv) =>
@@ -453,8 +444,7 @@ object PineconeIndexServiceFactory extends PineconeServiceFactoryHelper {
     apiKey: String,
     environment: Option[String]
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): Either[PineconePodBasedIndexService, PineconeServerlessIndexService] =
     environment match {
       case Some(podEnv) =>

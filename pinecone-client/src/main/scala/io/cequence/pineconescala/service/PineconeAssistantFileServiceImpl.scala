@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import io.cequence.pineconescala.PineconeScalaClientException
 import io.cequence.pineconescala.domain.response.{
   ChatCompletionResponse,
@@ -27,8 +26,7 @@ class PineconeAssistantFileServiceImpl(
   explicitTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  implicit val ec: ExecutionContext,
-  val materializer: Materializer
+  implicit val ec: ExecutionContext
 ) extends PineconeAssistantFileService
     with WSClientWithEngine {
 
@@ -130,8 +128,7 @@ object PineconeAssistantFileServiceFactory
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeAssistantFileService =
     new PineconeAssistantFileServiceImpl(apiKey, timeouts)
 
@@ -139,8 +136,7 @@ object PineconeAssistantFileServiceFactory
     engine: WSClientEngine,
     apiKey: String
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeAssistantFileService =
     new PineconeAssistantFileServiceImpl(apiKey, externalEngine = Some(engine))
 }

@@ -1,7 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.{PVector, SparseVector}
 import io.cequence.pineconescala.domain.response.{FetchResponse, IndexStats, QueryResponse}
 import io.cequence.pineconescala.domain.settings.QuerySettings
@@ -9,8 +7,7 @@ import org.scalatest.Pending.isSucceeded.&&
 import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.funspec.{AnyFunSpec, AsyncFunSpec}
 import org.scalatest.{Assertion, GivenWhenThen}
-import org.scalatest.matchers.must.Matchers.{contain, not}
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.collection.mutable.Stack
@@ -20,10 +17,10 @@ import scala.util.{Failure, Random, Success}
 class PodPineconeVectorServiceImplSpec
     extends AsyncWordSpec
     with GivenWhenThen
+    with Matchers
     with PodFixtures {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val materializer: Materializer = Materializer(ActorSystem())
 
   def vectorServiceBuilder: Future[PineconeVectorService] =
     PineconeVectorServiceFactory(indexName).map(

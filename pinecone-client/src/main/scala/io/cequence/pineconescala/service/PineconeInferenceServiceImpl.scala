@@ -1,6 +1,5 @@
 package io.cequence.pineconescala.service
 
-import akka.stream.Materializer
 import io.cequence.pineconescala.domain.response.{EmbeddingsResponse, EvaluateResponse, RerankResponse}
 import io.cequence.pineconescala.domain.settings.{GenerateEmbeddingsSettings, RerankSettings}
 import io.cequence.wsclient.ResponseImplicits._
@@ -19,8 +18,7 @@ private class PineconeInferenceServiceImpl(
   explicitTimeouts: Option[Timeouts] = None,
   externalEngine: Option[WSClientEngine] = None
 )(
-  implicit val ec: ExecutionContext,
-  val materializer: Materializer
+  implicit val ec: ExecutionContext
 ) extends PineconeInferenceService
     with WSClientWithEngine {
 
@@ -162,8 +160,7 @@ object PineconeInferenceServiceFactory
     apiKey: String,
     timeouts: Option[Timeouts] = None
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeInferenceService =
     new PineconeInferenceServiceImpl(apiKey, timeouts)
 
@@ -171,8 +168,7 @@ object PineconeInferenceServiceFactory
     engine: WSClientEngine,
     apiKey: String
   )(
-    implicit ec: ExecutionContext,
-    materializer: Materializer
+    implicit ec: ExecutionContext
   ): PineconeInferenceService =
     new PineconeInferenceServiceImpl(apiKey, externalEngine = Some(engine))
 }
